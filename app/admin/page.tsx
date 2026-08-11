@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { requireAdmin } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { AdminShell } from "@/components/AdminShell";
+import { formatPln } from "@/lib/format";
+export const metadata={title:'Panel administratora'};
+export default async function AdminPage(){await requireAdmin();const [total,available,sold,inquiries,recent]=await Promise.all([db.vehicle.count(),db.vehicle.count({where:{status:'AVAILABLE'}}),db.vehicle.count({where:{status:'SOLD'}}),db.inquiry.count(),db.vehicle.findMany({take:5,orderBy:{updatedAt:'desc'}})]);return <AdminShell><h1>Pulpit</h1><p className="dashboard-sub">Szybki podgląd oferty i aktywności klientów.</p><div className="kpi-grid"><div className="kpi"><span>Wszystkie pojazdy</span><strong>{total}</strong></div><div className="kpi"><span>Dostępne</span><strong>{available}</strong></div><div className="kpi"><span>Sprzedane</span><strong>{sold}</strong></div><div className="kpi"><span>Zapytania</span><strong>{inquiries}</strong></div></div><div className="panel"><div className="panel-head"><h2>Ostatnio edytowane</h2><Link href="/admin/pojazdy" className="btn btn-ghost">Wszystkie pojazdy</Link></div><div className="table-wrap"><table><thead><tr><th>Oferta</th><th>Rok</th><th>Cena netto</th><th>Status</th></tr></thead><tbody>{recent.map(v=><tr key={v.id}><td className="table-title">{v.title}</td><td>{v.year}</td><td>{formatPln(v.priceNet)}</td><td><span className="mini-status">{v.status}</span></td></tr>)}</tbody></table></div></div></AdminShell>}

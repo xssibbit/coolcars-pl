@@ -1,0 +1,3 @@
+import Link from "next/link"; import { AuthForm } from "@/components/AuthForm";
+export const metadata={title:'Logowanie'};
+export default function Login(){return <div className="auth-shell"><div className="auth-card"><span className="eyebrow">Konto klienta</span><h1>Witaj ponownie</h1><p>Zaloguj się, aby zapisywać pojazdy i wracać do interesujących ofert.</p><AuthForm mode="login"/><p style={{textAlign:'center',fontSize:14}}>Nie masz konta? <Link href="/rejestracja" style={{fontWeight:800,color:'#b92330'}}>Zarejestruj się</Link></p><div className="note">Demo: klient@coolcars.pl / User123!</div></div></div>}

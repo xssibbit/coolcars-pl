@@ -1,0 +1,6 @@
+<svg width="1200" height="760" viewBox="0 0 1200 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1200" y2="760" gradientUnits="userSpaceOnUse"><stop stop-color="#111827"/><stop offset="1" stop-color="#263342"/></linearGradient><linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#60A5FA"/><stop offset="1" stop-color="#F8FAFC" stop-opacity=".68"/></linearGradient></defs>
+<rect width="1200" height="760" rx="38" fill="url(#g)"/><circle cx="1000" cy="110" r="250" fill="#60A5FA" fill-opacity=".10"/><path d="M0 620C250 560 510 590 760 630C980 665 1090 650 1200 610V760H0V620Z" fill="#0B1220"/>
+<rect x="140" y="290" width="635" height="255" rx="24" fill="url(#r)"/><path d="M775 355H930L1025 468V545H775V355Z" fill="#F8FAFC"/><path d="M845 382H918L978 458H845V382Z" fill="#93C5FD"/><circle cx="315" cy="560" r="68" fill="#070B12"/><circle cx="315" cy="560" r="30" fill="#94A3B8"/><circle cx="870" cy="560" r="68" fill="#070B12"/><circle cx="870" cy="560" r="30" fill="#94A3B8"/>
+<text x="66" y="98" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">COOLCARS • SELECTED VEHICLE</text><rect x="66" y="125" width="116" height="6" rx="3" fill="#60A5FA"/>
+</svg>

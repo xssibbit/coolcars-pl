@@ -1,0 +1,2 @@
+import Link from "next/link";
+export function AdminShell({children}:{children:React.ReactNode}){return <div className="container dashboard"><aside className="sidebar"><div className="sidebar-title">CoolCars Admin</div><nav><Link href="/admin">Pulpit</Link><Link href="/admin/pojazdy">Pojazdy</Link><Link href="/admin/zapytania">Zapytania</Link><Link href="/admin/pojazdy/nowy">+ Dodaj pojazd</Link><Link href="/">Podgląd strony</Link></nav></aside><div className="dashboard-main">{children}</div></div>}

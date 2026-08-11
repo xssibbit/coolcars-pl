@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  DRAFT
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         Role        @default(USER)
+  favorites    Favorite[]
+  inquiries    Inquiry[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Vehicle {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  stockNumber    String        @unique
+  title          String
+  brand          String
+  model          String
+  year           Int
+  mileage        Int
+  priceNet       Int
+  vatRate        Int           @default(23)
+  category       String
+  fuel           String
+  transmission   String
+  powerHp        Int?
+  engineCapacity Int?
+  dmc            Int?
+  payload        Int?
+  location       String        @default("Polska")
+  description    String
+  status         VehicleStatus @default(AVAILABLE)
+  featured       Boolean       @default(false)
+  image          String        @default("/vehicles/truck-1.svg")
+  favorites      Favorite[]
+  inquiries      Inquiry[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([brand])
+  @@index([category])
+  @@index([status])
+}
+
+model Favorite {
+  userId    String
+  vehicleId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, vehicleId])
+}
+
+model Inquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  userId    String?
+  vehicleId String
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
