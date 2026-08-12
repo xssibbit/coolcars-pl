@@ -1,21 +1,27 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 import { getLocale, localeTag } from "@/lib/i18n";
 import { SearchForm } from "@/components/SearchForm";
 import { VehicleCard } from "@/components/VehicleCard";
 import { BrandCarousel } from "@/components/BrandCarousel";
 import { Icon } from "@/components/Icons";
 
+const isRealImage=(url:string)=>!!url&&!url.startsWith('/vehicles/');
+
 export default async function Home() {
-  const locale = await getLocale();
+  const [locale,user] = await Promise.all([getLocale(),getCurrentUser()]);
   const en = locale === "en";
-  const [featured, brandRows, availableCount] = await Promise.all([
-    db.vehicle.findMany({ where: { featured: true, status: { not: "DRAFT" } }, take: 6, orderBy: { createdAt: "desc" } }),
+  const [featured, heroCandidates, brandRows, availableCount] = await Promise.all([
+    db.vehicle.findMany({ where: { featured: true, status: { not: "DRAFT" } }, take: 6, orderBy: { createdAt: "desc" }, include:{favorites:{where:{userId:user?.id??'__guest__'}},images:{orderBy:{sortOrder:'asc'}}} }),
+    db.vehicle.findMany({ where:{status:{not:'DRAFT'}},take:30,orderBy:[{featured:'desc'},{createdAt:'desc'}],include:{images:{orderBy:{sortOrder:'asc'}}} }),
     db.vehicle.findMany({ select: { brand: true }, distinct: ["brand"], orderBy: { brand: "asc" } }),
     db.vehicle.count({ where: { status: "AVAILABLE" } }),
   ]);
   const brands = brandRows.map(x => x.brand);
-  const heroVehicle = featured[0];
+  const allHero=[...featured,...heroCandidates];
+  const heroVehicle=allHero.find((v,index)=>allHero.findIndex(x=>x.id===v.id)===index&&(isRealImage(v.image)||v.images.some(i=>isRealImage(i.url))));
+  const heroImage=heroVehicle?(isRealImage(heroVehicle.image)?heroVehicle.image:heroVehicle.images.find(i=>isRealImage(i.url))?.url):undefined;
   const heroPrice = heroVehicle ? new Intl.NumberFormat(localeTag(locale), { style: "currency", currency: "PLN", maximumFractionDigits: 0 }).format(heroVehicle.priceNet) : null;
   const categories = en ? [
     { title: "Commercial vehicles", meta: "Vans, refrigerated bodies and conversions", query: "Samochody dostawcze" },
@@ -47,9 +53,9 @@ export default async function Home() {
               <div><strong>3</strong><span>{en ? "sales locations" : "lokalizacje sprzedaży"}</span></div>
             </div>
           </div>
-          <div className="market-hero-visual">
-            <div className="hero-photo-shell"><img src={heroVehicle?.image || "/vehicles/truck-3.svg"} alt={heroVehicle?.title || "CoolCars vehicle"}/></div>
-            {heroVehicle && <Link href={`/samochody/${heroVehicle.slug}`} className="hero-offer-card">
+          <div className={`market-hero-visual ${heroImage?'has-real-photo':'no-real-photo'}`}>
+            <div className="hero-photo-shell">{heroImage?<img src={heroImage} alt={heroVehicle?.title||"CoolCars vehicle"}/>:<div className="hero-no-photo"><strong>COOL CARS</strong><span>{en?'New vehicle photos coming soon':'Nowe zdjęcia pojazdów już wkrótce'}</span></div>}</div>
+            {heroVehicle&&heroImage&&<Link href={`/samochody/${heroVehicle.slug}`} className="hero-offer-card">
               <span>{en ? "Featured offer" : "Wyróżniona oferta"}</span>
               <strong>{heroVehicle.title}</strong>
               <div className="hero-offer-meta"><b>{heroPrice} {en ? "net" : "netto"}</b><small>{heroVehicle.year} · {heroVehicle.mileage.toLocaleString(localeTag(locale))} km</small></div>
@@ -80,7 +86,7 @@ export default async function Home() {
     <section className="section">
       <div className="container">
         <div className="section-head"><div><span className="eyebrow">{en ? "Selected" : "Polecane"}</span><h2>{en ? "Vehicles worth a closer look" : "Samochody warte uwagi"}</h2></div><Link className="btn btn-ghost" href="/samochody">{en ? "View all" : "Pełna oferta"} <Icon name="arrow"/></Link></div>
-        <div className="card-grid">{featured.slice(0,6).map(v => <VehicleCard key={v.id} vehicle={v} locale={locale}/>)}</div>
+        <div className="card-grid">{featured.slice(0,6).map(v => <VehicleCard key={v.id} vehicle={v} locale={locale} loggedIn={!!user} initialFavorite={v.favorites.length>0}/>)}</div>
       </div>
     </section>
 
