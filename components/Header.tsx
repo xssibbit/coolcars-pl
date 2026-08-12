@@ -2,12 +2,14 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { Icon } from "@/components/Icons";
 
+const ORIGINAL_LOGO = "https://coolcars.pl/cdn/shop/files/cool-cars-logo.png?v=1751463577&width=380";
+
 export async function Header() {
   const user = await getCurrentUser();
   return <header className="site-header">
     <div className="container header-inner">
       <Link className="brand brand-logo" href="/" aria-label="Cool Cars">
-        <img src="/cool-cars-logo.svg" alt="COOL CARS" />
+        <img src={ORIGINAL_LOGO} alt="COOL CARS" />
       </Link>
       <nav className="nav" aria-label="Główna nawigacja">
         <Link href="/samochody">Samochody</Link>
