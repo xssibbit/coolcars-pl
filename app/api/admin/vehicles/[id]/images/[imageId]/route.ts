@@ -15,7 +15,9 @@ export async function DELETE(
   if (!image) return NextResponse.json({ error: "Zdjęcie nie istnieje" }, { status: 404 });
 
   try {
-    await del(image.url).catch(() => undefined);
+    if (process.env.BLOB_STORE_ID) {
+      await del(image.url, { storeId: process.env.BLOB_STORE_ID });
+    }
     await db.vehicleImage.delete({ where: { id: imageId } });
     const next = await db.vehicleImage.findFirst({ where: { vehicleId: id }, orderBy: { sortOrder: "asc" } });
     await db.vehicle.update({
@@ -23,7 +25,8 @@ export async function DELETE(
       data: { image: next?.url || "/vehicles/truck-1.svg" },
     });
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
+    console.error("Blob delete error:", error);
     return NextResponse.json({ error: "Nie udało się usunąć zdjęcia" }, { status: 400 });
   }
 }
