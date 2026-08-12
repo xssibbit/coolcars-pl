@@ -13,12 +13,14 @@ export function VehicleCard({ vehicle, locale = "pl", loggedIn=false, initialFav
   const en = locale === "en";
   const label = vehicle.status === "AVAILABLE" ? (en ? "Available" : "Dostępny") : vehicle.status === "RESERVED" ? (en ? "Reserved" : "Rezerwacja") : vehicle.status === "SOLD" ? (en ? "Sold" : "Sprzedany") : (en ? "Preparing" : "W przygotowaniu");
   const realImages=[...imageUrls.filter(isRealImage),...(isRealImage(imageUrl||'')?[imageUrl!]:[]),...(isRealImage(vehicle.image)?[vehicle.image]:[])].filter((x,i,a)=>a.indexOf(x)===i);
-  const cardImage=realImages[0];
+  const cardImage=realImages[0],secondImage=realImages[1];
+  const isNew=Date.now()-new Date(vehicle.createdAt).getTime()<14*86400000;
   return <article className="vehicle-card">
     <div className="vehicle-media-shell">
       <Link href={`/samochody/${vehicle.slug}`} className="vehicle-image-wrap">
-        {cardImage?<img className="vehicle-image" src={cardImage} alt={vehicle.title}/>:<div className="vehicle-image-placeholder"><strong>COOL CARS</strong><span>{en?'Photos coming soon':'Zdjęcia wkrótce'}</span></div>}
+        {cardImage?<><img className="vehicle-image vehicle-image-primary" src={cardImage} alt={vehicle.title} loading="lazy" decoding="async"/>{secondImage&&<img className="vehicle-image vehicle-image-secondary" src={secondImage} alt="" loading="lazy" decoding="async"/>}</>:<div className="vehicle-image-placeholder"><strong>COOL CARS</strong><span>{en?'Photos coming soon':'Zdjęcia wkrótce'}</span></div>}
         <span className="badge">{label}</span>
+        {isNew&&<span className="vehicle-new-badge">{en?'New':'Nowość'}</span>}
         {realImages.length>0&&<span className="vehicle-photo-count"><Icon name="camera" size={13}/>{realImages.length}</span>}
       </Link>
       <div className="vehicle-card-actions">
@@ -30,6 +32,7 @@ export function VehicleCard({ vehicle, locale = "pl", loggedIn=false, initialFav
     <div className="card-body">
       <div className="card-kicker">{vehicle.brand} · {vehicle.stockNumber}</div>
       <Link href={`/samochody/${vehicle.slug}`}><div className="card-title">{vehicle.title}</div></Link>
+      <div className="vehicle-location-line"><Icon name="pin" size={13}/>{vehicle.location}</div>
       <div className="spec-row vehicle-meta-row">
         <span className="spec-pill vehicle-meta-item"><Icon name="calendar" size={14}/><span>{vehicle.year}</span></span>
         <span className="spec-pill vehicle-meta-item"><Icon name="gauge" size={14}/><span>{formatKm(vehicle.mileage)}</span></span>
