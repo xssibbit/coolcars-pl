@@ -141,6 +141,7 @@ model AnalyticsEvent {
   id            String             @id @default(cuid())
   type          AnalyticsEventType
   vehicleId     String?
+  inquiryId     String?
   userId        String?
   visitorId     String?
   source        String?
@@ -158,6 +159,7 @@ model AnalyticsEvent {
   @@index([type, createdAt])
   @@index([vehicleId, createdAt])
   @@index([visitorId, createdAt])
+  @@index([inquiryId, type])
   @@index([source, createdAt])
   @@index([campaign, createdAt])
 }
