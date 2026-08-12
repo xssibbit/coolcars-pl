@@ -6,6 +6,7 @@ import { formatKm, formatPln, grossFromNet } from "@/lib/format";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { CompareButton } from "@/components/CompareButton";
 import { Icon } from "@/components/Icons";
+import { trackVehicleEvent } from "@/lib/analytics-client";
 import type { Locale } from "@/lib/i18n";
 
 type QuickVehicle = {
@@ -26,7 +27,7 @@ export function QuickViewButton({vehicle,images,locale="pl",loggedIn=false,initi
     return()=>{window.removeEventListener('keydown',key);const top=document.body.style.top;document.body.style.position='';document.body.style.top='';document.body.style.width='';window.scrollTo(0,Math.abs(parseInt(top||'0',10)));};
   },[open]);
   return <>
-    <button type="button" className="vehicle-action-btn quick-view-trigger" onClick={()=>{setActive(0);setOpen(true)}} aria-label={en?'Quick view':'Szybki podgląd'} title={en?'Quick view':'Szybki podgląd'}><Icon name="eye" size={18}/></button>
+    <button type="button" className="vehicle-action-btn quick-view-trigger" onClick={()=>{setActive(0);setOpen(true);trackVehicleEvent('QUICK_VIEW',vehicle.id)}} aria-label={en?'Quick view':'Szybki podgląd'} title={en?'Quick view':'Szybki podgląd'}><Icon name="eye" size={18}/></button>
     {open&&<div className="quick-view-modal" role="dialog" aria-modal="true" aria-label={en?'Vehicle quick view':'Szybki podgląd pojazdu'}>
       <button type="button" className="quick-view-backdrop" onClick={()=>setOpen(false)} aria-label={en?'Close':'Zamknij'}/>
       <div className="quick-view-panel">
