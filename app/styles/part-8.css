@@ -34,6 +34,27 @@
   line-height:1.28;
 }
 
+.vehicle-meta-row {
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+.vehicle-meta-item {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 9px;
+  color:#40516f;
+  background:#f7f9fc;
+  border-color:#e4e9f1;
+}
+
+.vehicle-meta-item svg {
+  flex:0 0 auto;
+  color:#4f6fd8;
+}
+
 .catalog-layout .spec-row {
   margin-bottom:14px;
   gap:6px;
@@ -46,6 +67,25 @@
 .catalog-layout .price-row {
   align-items:center;
   padding-top:14px;
+}
+
+.vehicle-price-block {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+
+.vehicle-price-icon {
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:#355fd0;
+  background:#eef3ff;
+  border:1px solid #dbe5ff;
 }
 
 .catalog-layout .price strong {
@@ -68,6 +108,18 @@
 
   .catalog-layout .spec-row {
     margin-bottom:12px;
+  }
+
+  .vehicle-meta-item {
+    padding:6px 8px;
+    gap:5px;
+    font-size:10px;
+  }
+
+  .vehicle-price-icon {
+    width:32px;
+    height:32px;
+    flex-basis:32px;
   }
 
   .catalog-layout .price strong {
