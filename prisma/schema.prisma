@@ -35,6 +35,9 @@ enum AnalyticsEventType {
   FAVORITE
   COMPARE
   QUICK_VIEW
+  WHATSAPP
+  CALLBACK
+  SHARE
   WON
 }
 
@@ -46,6 +49,7 @@ model User {
   role            Role             @default(USER)
   favorites       Favorite[]
   inquiries       Inquiry[]
+  savedSearches   SavedSearch[]
   analyticsEvents AnalyticsEvent[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -107,10 +111,23 @@ model Favorite {
   @@id([userId, vehicleId])
 }
 
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  query     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, query])
+  @@index([userId, createdAt])
+}
+
 model Inquiry {
   id            String        @id @default(cuid())
   name          String
-  email         String
+  email         String?
   phone         String?
   message       String
   status        InquiryStatus @default(NEW)
