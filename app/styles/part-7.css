@@ -1,0 +1,113 @@
+/* Robust mobile navigation layer: rendered through a body portal. */
+.mobile-menu-layer {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  z-index: 2147483000 !important;
+  isolation: isolate;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.mobile-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: rgba(10, 20, 40, .42);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  cursor: default;
+  animation: mobileMenuFade .2s ease both;
+}
+
+.mobile-menu-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(88vw, 390px);
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  padding:
+    max(18px, env(safe-area-inset-top))
+    max(18px, env(safe-area-inset-right))
+    max(18px, env(safe-area-inset-bottom))
+    18px;
+  box-shadow: -24px 0 64px rgba(16, 24, 40, .24);
+  display: flex;
+  flex-direction: column;
+  animation: mobileMenuSlide .24s cubic-bezier(.22,.75,.25,1) both;
+}
+
+.mobile-menu-drawer-head {
+  position: sticky;
+  top: calc(-1 * max(18px, env(safe-area-inset-top)));
+  z-index: 2;
+  min-height: 58px;
+  background: rgba(255,255,255,.96);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.mobile-menu-close,
+.mobile-menu-toggle {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.mobile-menu-close:active,
+.mobile-menu-toggle:active {
+  transform: scale(.96);
+}
+
+.mobile-menu-links a {
+  min-height: 58px;
+  padding: 0 2px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.mobile-menu-account {
+  padding-bottom: 4px;
+}
+
+.mobile-menu-phone {
+  padding-bottom: max(4px, env(safe-area-inset-bottom));
+}
+
+@keyframes mobileMenuFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobileMenuSlide {
+  from { transform: translate3d(100%,0,0); }
+  to { transform: translate3d(0,0,0); }
+}
+
+@media (max-width: 480px) {
+  .mobile-menu-drawer {
+    width: min(92vw, 360px);
+    padding-left: 16px;
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+
+  .mobile-menu-links a { font-size: 17px; }
+  .mobile-menu-account .btn { min-height: 50px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-layer,
+  .mobile-menu-backdrop,
+  .mobile-menu-drawer { animation: none !important; }
+}
