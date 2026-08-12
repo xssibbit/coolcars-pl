@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" role="img" aria-labelledby="title">
+  <title id="title">COOL CARS</title>
+  <rect width="520" height="150" fill="#050505"/>
+  <g transform="translate(72 75)">
+    <g fill="none" stroke="#5f83eb" stroke-width="10">
+      <circle r="50"/>
+      <circle r="39" stroke-width="5"/>
+    </g>
+    <g fill="#5f83eb">
+      <rect x="-8" y="-66" width="16" height="16" rx="2"/><rect x="-8" y="50" width="16" height="16" rx="2"/>
+      <rect x="50" y="-8" width="16" height="16" rx="2"/><rect x="-66" y="-8" width="16" height="16" rx="2"/>
+      <rect transform="rotate(45)" x="-8" y="-66" width="16" height="16" rx="2"/><rect transform="rotate(45)" x="-8" y="50" width="16" height="16" rx="2"/>
+      <rect transform="rotate(-45)" x="-8" y="-66" width="16" height="16" rx="2"/><rect transform="rotate(-45)" x="-8" y="50" width="16" height="16" rx="2"/>
+    </g>
+    <g stroke="#b8ddff" stroke-width="4" stroke-linecap="round">
+      <path d="M0-33V33M-28-16L28 16M-28 16L28-16"/>
+      <path d="M0-33l-7 8M0-33l7 8M0 33l-7-8M0 33l7-8"/>
+      <path d="M-28-16l10 1M-28-16l4 9M28 16l-10-1M28 16l-4-9"/>
+      <path d="M-28 16l10-1M-28 16l4-9M28-16l-10 1M28-16l-4 9"/>
+    </g>
+  </g>
+  <text x="155" y="94" fill="#5f83eb" font-family="Arial Black, Arial, Helvetica, sans-serif" font-size="58" font-weight="900" font-style="italic" letter-spacing="6">COOL</text>
+</svg>
