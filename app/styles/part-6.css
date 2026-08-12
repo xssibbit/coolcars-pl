@@ -1,0 +1,242 @@
+/* Compact premium homepage + mobile-first usability layer */
+
+/* Mercedes-Benz uses a dedicated SVG source; keep the star visually balanced. */
+.brand-mercedes-benz .brand-logo-visual img { height:48px; max-width:78px; }
+
+/* Reduce homepage length without losing the premium marketplace feeling. */
+.market-hero { padding:22px 0 18px; }
+.market-hero-grid { min-height:455px; }
+.market-hero-copy { padding:52px 50px 48px; }
+.market-hero-copy h1 { font-size:clamp(44px,4.6vw,64px); margin:12px 0 18px; }
+.market-hero-copy p { font-size:16px; line-height:1.62; }
+.market-hero-actions { margin-top:22px; }
+.market-stats { margin-top:28px; padding-top:18px; }
+.market-hero-visual { min-height:455px; }
+.hero-photo-shell { inset:24px 20px 30px 4px; }
+.hero-offer-card { bottom:18px; }
+.marketplace-search { margin:-24px auto 0; padding:16px; }
+.marketplace-search .search-heading { padding-bottom:3px; }
+.quick-searches { padding-top:12px; }
+.brand-carousel-section { padding:20px 0 24px; }
+.brand-carousel-heading { margin-bottom:12px; }
+
+#kategorie { padding:42px 0; }
+#kategorie .section-head { margin-bottom:18px; }
+#kategorie .section-head h2 { font-size:clamp(30px,3.2vw,42px); }
+#kategorie .section-lead { max-width:560px; line-height:1.55; font-size:14px; }
+#kategorie .category-list { grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; border:0; }
+#kategorie .category-row { grid-template-columns:34px 1fr auto; min-height:106px; gap:10px; padding:16px; border:1px solid var(--line); border-radius:15px; background:#fff; box-shadow:0 8px 24px rgba(25,45,87,.045); }
+#kategorie .category-row:hover { padding-left:16px; transform:translateY(-2px); box-shadow:0 14px 30px rgba(25,45,87,.08); }
+#kategorie .category-row strong { font-size:17px; }
+#kategorie .category-row > div > span { font-size:11px; line-height:1.4; }
+#kategorie .category-arrow { width:32px; height:32px; }
+
+#kategorie + .section { padding:48px 0; }
+#kategorie + .section .section-head { margin-bottom:22px; }
+#kategorie + .section .section-head h2 { font-size:clamp(32px,3.5vw,46px); }
+.premium-service-section { padding:52px 0; }
+.premium-service-grid { gap:52px; }
+.premium-service-copy h2 { font-size:clamp(34px,4vw,50px); }
+.premium-service-copy p { line-height:1.62; margin-bottom:20px; }
+.premium-service-points > div { padding:17px 0; }
+.footer { padding:44px 0 28px; }
+
+/* Vehicle gallery/touch behavior. */
+.vehicle-thumbs { display:flex; gap:9px; overflow-x:auto; padding:10px 2px 3px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.vehicle-thumbs::-webkit-scrollbar { display:none; }
+.vehicle-thumb { flex:0 0 92px; width:92px; height:68px; padding:0; overflow:hidden; border-radius:10px; border:2px solid transparent; background:#eef2f7; cursor:pointer; scroll-snap-align:start; }
+.vehicle-thumb.active { border-color:var(--accent); }
+.vehicle-thumb img { width:100%; height:100%; object-fit:cover; }
+
+/* Mobile navigation drawer. */
+.mobile-menu-root { display:none; }
+.mobile-menu-toggle { width:44px; height:44px; border:1px solid var(--line); background:#fff; border-radius:11px; padding:10px; cursor:pointer; align-items:center; justify-content:center; flex-direction:column; gap:5px; }
+.mobile-menu-toggle span { width:20px; height:2px; border-radius:99px; background:#1d2939; display:block; }
+.mobile-menu-layer { position:fixed; inset:0; z-index:120; }
+.mobile-menu-backdrop { position:absolute; inset:0; width:100%; height:100%; border:0; background:rgba(12,22,43,.34); backdrop-filter:blur(3px); }
+.mobile-menu-drawer { position:absolute; top:0; right:0; width:min(88vw,380px); height:100%; background:#fff; padding:20px; box-shadow:-24px 0 60px rgba(16,24,40,.2); display:flex; flex-direction:column; }
+.mobile-menu-drawer-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.mobile-menu-drawer-head strong { color:#182744; letter-spacing:.06em; font-size:13px; }
+.mobile-menu-close { width:42px; height:42px; border:1px solid var(--line); background:#fff; border-radius:10px; font-size:26px; line-height:1; color:#344054; cursor:pointer; }
+.mobile-menu-links { display:grid; margin-top:12px; }
+.mobile-menu-links a { min-height:54px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #eef1f5; font-size:16px; font-weight:800; color:#26334b; }
+.mobile-menu-links a span { font-size:24px; color:#8b9ab2; }
+.mobile-menu-account { display:grid; grid-template-columns:1fr; gap:9px; margin-top:auto; padding-top:22px; }
+.mobile-menu-account .btn { min-height:48px; width:100%; }
+.mobile-menu-phone { display:block; text-align:center; padding:15px 0 4px; font-size:16px; font-weight:900; color:#3159c9; }
+
+@media (max-width:1000px) {
+  .header-actions { display:none; }
+  .mobile-menu-root { display:block; }
+  .mobile-menu-toggle { display:flex; }
+  .header-inner { gap:14px; }
+  .market-hero-grid { min-height:0; }
+  .market-hero-visual { min-height:330px; }
+
+  /* Admin/account navigation becomes horizontally scrollable instead of a tall sidebar. */
+  .dashboard { padding-top:22px; }
+  .sidebar { padding:10px; overflow:hidden; }
+  .sidebar-title { padding:7px 10px 10px; }
+  .sidebar nav { display:flex; gap:7px; overflow-x:auto; white-space:nowrap; scrollbar-width:none; padding-bottom:2px; }
+  .sidebar nav::-webkit-scrollbar { display:none; }
+  .sidebar nav a { flex:0 0 auto; min-height:42px; display:flex; align-items:center; }
+}
+
+@media (max-width:700px) {
+  .container { width:calc(100% - 20px); }
+  .topbar-inner { min-height:30px; }
+  .topbar { font-size:11px; }
+  .language-switch { padding:2px 6px; }
+  .site-header { top:0; }
+  .header-inner { height:64px; }
+  .brand-logo img { width:145px; height:40px; }
+
+  /* Shorter, denser first screen on phones. */
+  .market-hero { padding:8px 0 12px; }
+  .market-hero-grid { border-radius:18px; box-shadow:0 16px 42px rgba(32,55,103,.11); }
+  .market-hero-copy { padding:28px 18px 22px; }
+  .market-hero-copy h1 { font-size:clamp(34px,10vw,42px); line-height:1.01; margin:10px 0 13px; }
+  .market-hero-copy p { font-size:14px; line-height:1.52; }
+  .market-hero-actions { margin-top:17px; gap:10px; }
+  .market-hero-actions .btn { width:100%; min-height:46px; }
+  .market-hero-actions .text-link { width:100%; justify-content:center; min-height:40px; }
+  .market-stats { margin-top:20px; padding-top:14px; gap:4px; }
+  .market-stats strong { font-size:19px; }
+  .market-stats span { font-size:9px; line-height:1.25; }
+  .market-hero-visual { min-height:235px; }
+  .hero-photo-shell { inset:8px 0 47px; }
+  .hero-photo-shell img { transform:scale(1); filter:drop-shadow(0 20px 18px rgba(30,49,88,.22)); }
+  .hero-offer-card { left:10px; right:10px; bottom:9px; padding:11px 12px; border-radius:12px; }
+  .hero-offer-card > span { display:none; }
+  .hero-offer-card > strong { font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 0 5px; }
+  .hero-offer-meta b { font-size:15px; }
+  .hero-offer-meta small { font-size:10px; }
+
+  /* Search remains powerful, but takes roughly half the previous vertical space. */
+  .marketplace-search { width:calc(100% - 12px); margin:-5px auto 0; padding:11px; border-radius:14px; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .marketplace-search .search-heading { grid-column:1/-1; padding:0 1px 3px; }
+  .search-heading strong { font-size:15px; }
+  .marketplace-search > .field:nth-child(2) { grid-column:1/-1; }
+  .marketplace-search .field { min-width:0; }
+  .marketplace-search .field label { font-size:9px; }
+  .marketplace-search .input,.marketplace-search .select { min-height:43px; padding:10px 9px; font-size:13px; }
+  .marketplace-search .search-submit { grid-column:1/-1; min-height:45px; }
+  .quick-searches { flex-wrap:nowrap; overflow-x:auto; white-space:nowrap; padding:10px 0 2px; scrollbar-width:none; }
+  .quick-searches::-webkit-scrollbar { display:none; }
+  .quick-searches > span { display:none; }
+  .quick-searches a { flex:0 0 auto; min-height:36px; display:flex; align-items:center; }
+
+  .brand-carousel-section { padding:17px 0 19px; }
+  .brand-carousel-heading { padding:0 10px; margin-bottom:10px; }
+  .brand-logo-card { width:140px; min-width:140px; height:88px; padding:10px 12px; border-radius:15px; }
+  .brand-logo-visual { height:38px; }
+  .brand-logo-visual img { height:31px; max-width:84px; }
+  .brand-mercedes-benz .brand-logo-visual img { height:37px; max-width:58px; }
+  .brand-logo-card strong { font-size:11px; }
+
+  /* Categories become a one-row swipe rail instead of four tall rows. */
+  #kategorie { padding:30px 0 26px; }
+  #kategorie .section-head { margin-bottom:13px; }
+  #kategorie .section-head h2 { font-size:29px; }
+  #kategorie .section-lead { display:none; }
+  #kategorie .category-list { display:flex; gap:10px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:4px; scrollbar-width:none; }
+  #kategorie .category-list::-webkit-scrollbar { display:none; }
+  #kategorie .category-row { flex:0 0 74vw; min-height:88px; grid-template-columns:27px 1fr auto; padding:13px; scroll-snap-align:start; }
+  #kategorie .category-row:hover { padding-left:13px; }
+  #kategorie .category-row strong { font-size:15px; }
+  #kategorie .category-row > div > span { display:block!important; font-size:10px; }
+  #kategorie .category-arrow { width:30px; height:30px; }
+
+  /* Featured cars are swipeable on the homepage: one visual row instead of 3 long cards. */
+  #kategorie + .section { padding:32px 0 34px; overflow:hidden; }
+  #kategorie + .section .section-head { margin-bottom:15px; gap:10px; }
+  #kategorie + .section .section-head h2 { font-size:29px; }
+  #kategorie + .section .section-head .btn { padding:9px 12px; font-size:11px; }
+  #kategorie + .section .card-grid { display:flex; gap:12px; overflow-x:auto; scroll-snap-type:x mandatory; padding:1px 2px 12px; scrollbar-width:none; }
+  #kategorie + .section .card-grid::-webkit-scrollbar { display:none; }
+  #kategorie + .section .vehicle-card { flex:0 0 82vw; min-width:82vw; scroll-snap-align:start; }
+  #kategorie + .section .vehicle-image-wrap { aspect-ratio:1.55; }
+  #kategorie + .section .card-body { padding:16px; }
+  #kategorie + .section .card-title { font-size:17px; min-height:0; margin-bottom:11px; }
+  #kategorie + .section .price strong { font-size:21px; }
+
+  .premium-service-section { padding:34px 0; }
+  .premium-service-grid { gap:24px; }
+  .premium-service-copy h2 { font-size:31px; margin:8px 0 13px; }
+  .premium-service-copy p { font-size:13px; line-height:1.55; }
+  .premium-service-points > div { grid-template-columns:30px 1fr; gap:10px; padding:13px 0; }
+  .premium-service-points strong { font-size:14px; }
+  .premium-service-points p { grid-column:2; font-size:11px; line-height:1.45; }
+
+  /* Catalog: two-column compact filters, one-column vehicle results. */
+  .page-hero { padding:32px 0 14px; }
+  .page-hero h1 { font-size:36px; margin:8px 0 10px; }
+  .page-hero p { font-size:13px; line-height:1.55; }
+  .section-tight { padding:22px 0 34px; }
+  .catalog-layout { gap:14px; }
+  .filter-panel { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; padding:13px; border-radius:13px; }
+  .filter-panel h3 { grid-column:1/-1; margin:0 0 2px; }
+  .filter-panel .field { margin:0; min-width:0; }
+  .filter-panel .field:first-of-type { grid-column:1/-1; }
+  .filter-panel .btn { grid-column:1/-1; min-height:45px; }
+  .filter-panel .input,.filter-panel .select { min-height:43px; padding:10px; font-size:13px; }
+  .result-bar { margin-bottom:12px; font-size:11px; }
+  .catalog-layout .card-grid { grid-template-columns:1fr!important; gap:13px; }
+  .catalog-layout .vehicle-card { border-radius:14px; }
+  .catalog-layout .card-body { padding:16px; }
+  .catalog-layout .vehicle-image-wrap { aspect-ratio:1.65; }
+  .catalog-layout .card-title { min-height:0; font-size:17px; margin-bottom:11px; }
+
+  /* Vehicle page: larger touch targets and horizontal thumbnails. */
+  .detail-grid { gap:15px; }
+  .detail-image { border-radius:14px; }
+  .detail-image img { aspect-ratio:4/3; }
+  .vehicle-thumb { flex-basis:78px; width:78px; height:58px; }
+  .detail-card { padding:18px; border-radius:15px; }
+  .detail-title { font-size:28px; margin:8px 0 13px; }
+  .detail-price { font-size:30px; }
+  .detail-card .btn { min-height:46px; }
+  .spec-cell { padding:14px; }
+  .content-card { padding:18px; margin-top:15px; border-radius:13px; }
+  .content-card h2 { font-size:20px; }
+  .content-card p { font-size:13px; line-height:1.65; }
+
+  /* Login/account/admin: phone-friendly controls and horizontal admin navigation. */
+  .auth-shell { padding:28px 10px; min-height:calc(100vh - 94px); }
+  .auth-card { padding:22px 17px; border-radius:15px; }
+  .auth-card h1 { font-size:31px; }
+  .input,.select,.textarea,.btn,.icon-btn { min-height:44px; }
+  .dashboard { padding:18px 0 40px; gap:13px; }
+  .sidebar { border-radius:12px; }
+  .sidebar-title { display:none; }
+  .sidebar nav { margin-top:0; }
+  .dashboard-main h1 { font-size:31px; }
+  .dashboard-sub { font-size:13px; margin-bottom:15px; }
+  .kpi { padding:15px; }
+  .kpi strong { font-size:27px; }
+  .panel { border-radius:12px; }
+  .panel-head { padding:13px; align-items:flex-start; }
+  .panel-head h2 { font-size:17px; }
+  th,td { padding:12px; }
+  .admin-form { padding:15px; border-radius:13px; }
+  .photo-drop { padding:18px 14px; }
+  .photo-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+  .photo-remove { min-height:36px; padding:6px 8px; }
+
+  .footer { padding:34px 0 24px; }
+  .footer-brand-row { gap:21px; }
+  .footer-brand-row p { font-size:12px; line-height:1.6; }
+  .contact-grid { margin-top:22px; gap:9px; }
+  .contact-card { padding:16px; }
+  .footer-bottom { margin-top:20px; }
+}
+
+@media (max-width:390px) {
+  .brand-logo img { width:132px; }
+  .market-hero-copy h1 { font-size:33px; }
+  .marketplace-search { grid-template-columns:1fr; }
+  .marketplace-search > .field:nth-child(2),.marketplace-search .search-heading,.marketplace-search .search-submit { grid-column:auto; }
+  .filter-panel { grid-template-columns:1fr; }
+  .filter-panel h3,.filter-panel .field:first-of-type,.filter-panel .btn { grid-column:auto; }
+  .photo-grid { grid-template-columns:1fr; }
+}
