@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icons";
+import { trackVehicleEvent } from "@/lib/analytics-client";
 import type { Locale } from "@/lib/i18n";
 
 export function FavoriteButton({ vehicleId, initial, loggedIn, locale="pl", compact=false }: { vehicleId:string; initial:boolean; loggedIn:boolean; locale?:Locale; compact?:boolean }) {
@@ -16,8 +17,9 @@ export function FavoriteButton({ vehicleId, initial, loggedIn, locale="pl", comp
     onClick={async(e)=>{
       e.preventDefault(); e.stopPropagation();
       if(!loggedIn){router.push('/login');return;}
-      const res=await fetch(`/api/favorites/${vehicleId}`,{method:active?'DELETE':'POST'});
-      if(res.ok)setActive(!active);
+      const adding=!active;
+      const res=await fetch(`/api/favorites/${vehicleId}`,{method:adding?'POST':'DELETE'});
+      if(res.ok){setActive(adding);if(adding)trackVehicleEvent('FAVORITE',vehicleId);}
     }}
   ><Icon name="heart" size={compact?18:18}/>{compact?null:<> {label}</>}</button>
 }
