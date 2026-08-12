@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getLocale } from "@/lib/i18n";
 import { Icon } from "@/components/Icons";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { MobileMenu } from "@/components/MobileMenu";
 
 const ORIGINAL_LOGO = "https://coolcars.pl/cdn/shop/files/cool-cars-logo.png?v=1751463577&width=380";
 
@@ -34,6 +35,7 @@ export async function Header() {
             <Link className="btn btn-primary" href="/rejestracja"><Icon name="user"/> {en ? "Account" : "Konto"}</Link>
           </>}
         </div>
+        <MobileMenu en={en} loggedIn={!!user} isAdmin={user?.role === "ADMIN"} userName={user?.name.split(" ")[0]} />
       </div>
     </header>
   </>;
