@@ -1,96 +1,87 @@
 import { NextResponse } from "next/server";
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { put } from "@vercel/blob";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
-async function isAdmin() {
-  const user = await getCurrentUser();
-  return Boolean(user && user.role === "ADMIN");
-}
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_FILE_SIZE = 4 * 1024 * 1024;
 
-function blobConfigured() {
-  return Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+async function requireAdmin() {
+  const user = await getCurrentUser();
+  return user && user.role === "ADMIN" ? user : null;
 }
 
 export async function GET() {
-  if (!(await isAdmin())) {
-    return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
-  }
+  const user = await requireAdmin();
+  if (!user) return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
 
   return NextResponse.json({
-    blobConfigured: blobConfigured(),
-    authMode: process.env.BLOB_STORE_ID ? "oidc" : process.env.BLOB_READ_WRITE_TOKEN ? "token" : "none",
+    blobConfigured: Boolean(process.env.BLOB_STORE_ID),
+    authMode: process.env.BLOB_STORE_ID ? "oidc" : "none",
   });
 }
 
 export async function POST(request: Request) {
-  if (!blobConfigured()) {
-    return NextResponse.json(
-      { error: "Vercel Blob nie jest połączony z projektem." },
-      { status: 503 },
-    );
+  const user = await requireAdmin();
+  if (!user) return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
+
+  if (!process.env.BLOB_STORE_ID) {
+    return NextResponse.json({ error: "Vercel Blob nie jest połączony z projektem." }, { status: 503 });
   }
 
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (_pathname, clientPayload) => {
-        const user = await getCurrentUser();
-        if (!user || user.role !== "ADMIN") throw new Error("Brak uprawnień");
+    const formData = await request.formData();
+    const file = formData.get("file");
+    const vehicleId = String(formData.get("vehicleId") || "");
+    const requestedSortOrder = Number(formData.get("sortOrder"));
+    const makePrimary = String(formData.get("makePrimary") || "false") === "true";
 
-        const payload = JSON.parse(clientPayload || "{}") as {
-          vehicleId?: string;
-          sortOrder?: number;
-          makePrimary?: boolean;
-        };
-        if (!payload.vehicleId) throw new Error("Brak pojazdu");
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "Brak zdjęcia" }, { status: 400 });
+    }
+    if (!vehicleId) {
+      return NextResponse.json({ error: "Brak pojazdu" }, { status: 400 });
+    }
+    if (!ALLOWED_TYPES.has(file.type)) {
+      return NextResponse.json({ error: "Dozwolone są tylko JPG, PNG i WEBP." }, { status: 400 });
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: "Zdjęcie jest zbyt duże po optymalizacji. Maksymalnie 4 MB." }, { status: 400 });
+    }
 
-        const vehicle = await db.vehicle.findUnique({
-          where: { id: payload.vehicleId },
-          select: { id: true },
-        });
-        if (!vehicle) throw new Error("Pojazd nie istnieje");
+    const vehicle = await db.vehicle.findUnique({
+      where: { id: vehicleId },
+      select: { id: true },
+    });
+    if (!vehicle) {
+      return NextResponse.json({ error: "Pojazd nie istnieje" }, { status: 404 });
+    }
 
-        return {
-          allowedContentTypes: ["image/jpeg", "image/png", "image/webp"],
-          maximumSizeInBytes: 8 * 1024 * 1024,
-          addRandomSuffix: true,
-          tokenPayload: JSON.stringify({
-            vehicleId: payload.vehicleId,
-            sortOrder: Number.isFinite(payload.sortOrder) ? payload.sortOrder : 0,
-            makePrimary: payload.makePrimary === true,
-          }),
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        const payload = JSON.parse(tokenPayload || "{}") as {
-          vehicleId?: string;
-          sortOrder?: number;
-          makePrimary?: boolean;
-        };
-        if (!payload.vehicleId) return;
-
-        const sortOrder = Number.isFinite(payload.sortOrder) ? Number(payload.sortOrder) : 0;
-        await db.$transaction(async (tx) => {
-          await tx.vehicleImage.create({
-            data: { vehicleId: payload.vehicleId!, url: blob.url, sortOrder },
-          });
-          if (payload.makePrimary) {
-            await tx.vehicle.update({
-              where: { id: payload.vehicleId! },
-              data: { image: blob.url },
-            });
-          }
-        });
-      },
+    const safeName = (file.name || "photo.jpg").toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
+    const blob = await put(`vehicles/${vehicleId}/${Date.now()}-${safeName}`, file, {
+      access: "public",
+      addRandomSuffix: true,
+      contentType: file.type,
+      storeId: process.env.BLOB_STORE_ID,
     });
 
-    return NextResponse.json(jsonResponse);
+    const count = await db.vehicleImage.count({ where: { vehicleId } });
+    const sortOrder = Number.isFinite(requestedSortOrder) ? requestedSortOrder : count;
+
+    const image = await db.vehicleImage.create({
+      data: { vehicleId, url: blob.url, sortOrder },
+    });
+
+    if (makePrimary || count === 0) {
+      await db.vehicle.update({
+        where: { id: vehicleId },
+        data: { image: blob.url },
+      });
+    }
+
+    return NextResponse.json({ id: image.id, url: blob.url, sortOrder });
   } catch (error) {
-    console.error("Blob upload token error:", error);
+    console.error("Blob direct upload error:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Nie udało się przesłać zdjęcia" },
       { status: 400 },
