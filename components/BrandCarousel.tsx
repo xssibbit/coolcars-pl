@@ -1,23 +1,22 @@
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 
-const logoSlugs: Record<string, string> = {
-  Fiat: "fiat",
-  Iveco: "iveco",
-  "Mercedes-Benz": "mercedesbenz",
-  Renault: "renault",
-  Toyota: "toyota",
-  Volvo: "volvo",
+const logoSources: Record<string, string> = {
+  Fiat: "https://cdn.simpleicons.org/fiat?viewbox=auto",
+  Iveco: "https://cdn.simpleicons.org/iveco?viewbox=auto",
+  "Mercedes-Benz": "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/mercedes-benz/default.svg",
+  Renault: "https://cdn.simpleicons.org/renault?viewbox=auto",
+  Toyota: "https://cdn.simpleicons.org/toyota?viewbox=auto",
+  Volvo: "https://cdn.simpleicons.org/volvo?viewbox=auto",
 };
 
 function brandLogoUrl(brand: string) {
-  const slug = logoSlugs[brand] ?? brand.toLowerCase().replace(/[^a-z0-9]/g, "");
-  return `https://cdn.simpleicons.org/${slug}?viewbox=auto`;
+  return logoSources[brand] ?? `https://cdn.simpleicons.org/${brand.toLowerCase().replace(/[^a-z0-9]/g, "")}?viewbox=auto`;
 }
 
 export function BrandCarousel({ brands, locale = "pl" }: { brands: string[]; locale?: Locale }) {
   const en = locale === "en";
-  const visibleBrands = brands.filter((brand) => logoSlugs[brand]);
+  const visibleBrands = brands.filter((brand) => logoSources[brand]);
   const items = visibleBrands.length ? visibleBrands : brands;
 
   return <section className="brand-carousel-section" aria-label={en ? "Vehicle makes currently in stock" : "Marki samochodów aktualnie w ofercie"}>
@@ -34,7 +33,7 @@ export function BrandCarousel({ brands, locale = "pl" }: { brands: string[]; loc
           {items.map((brand) => <Link
             key={`${group}-${brand}`}
             href={`/samochody?brand=${encodeURIComponent(brand)}`}
-            className="brand-logo-card"
+            className={`brand-logo-card brand-${brand.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
             aria-label={`${en ? "Show" : "Pokaż"} ${brand}`}
           >
             <span className="brand-logo-visual">
