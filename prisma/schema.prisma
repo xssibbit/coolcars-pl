@@ -19,46 +19,66 @@ enum VehicleStatus {
   DRAFT
 }
 
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum AnalyticsEventType {
+  VIEW
+  CALL
+  INQUIRY
+  FAVORITE
+  COMPARE
+  QUICK_VIEW
+}
+
 model User {
-  id           String      @id @default(cuid())
-  name         String
-  email        String      @unique
-  passwordHash String
-  role         Role        @default(USER)
-  favorites    Favorite[]
-  inquiries    Inquiry[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  passwordHash    String
+  role            Role             @default(USER)
+  favorites       Favorite[]
+  inquiries       Inquiry[]
+  analyticsEvents AnalyticsEvent[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 }
 
 model Vehicle {
-  id             String         @id @default(cuid())
-  slug           String         @unique
-  stockNumber    String         @unique
-  title          String
-  brand          String
-  model          String
-  year           Int
-  mileage        Int
-  priceNet       Int
-  vatRate        Int            @default(23)
-  category       String
-  fuel           String
-  transmission   String
-  powerHp        Int?
-  engineCapacity Int?
-  dmc            Int?
-  payload        Int?
-  location       String         @default("Polska")
-  description    String
-  status         VehicleStatus  @default(AVAILABLE)
-  featured       Boolean        @default(false)
-  image          String         @default("/vehicles/truck-1.svg")
-  images         VehicleImage[]
-  favorites      Favorite[]
-  inquiries      Inquiry[]
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id              String           @id @default(cuid())
+  slug            String           @unique
+  stockNumber     String           @unique
+  title           String
+  brand           String
+  model           String
+  year            Int
+  mileage         Int
+  priceNet        Int
+  vatRate         Int              @default(23)
+  category        String
+  fuel            String
+  transmission    String
+  powerHp         Int?
+  engineCapacity  Int?
+  dmc             Int?
+  payload         Int?
+  location        String           @default("Polska")
+  description     String
+  status          VehicleStatus    @default(AVAILABLE)
+  featured        Boolean          @default(false)
+  image           String           @default("/vehicles/truck-1.svg")
+  images          VehicleImage[]
+  favorites       Favorite[]
+  inquiries       Inquiry[]
+  analyticsEvents AnalyticsEvent[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([brand])
   @@index([category])
@@ -79,22 +99,44 @@ model VehicleImage {
 model Favorite {
   userId    String
   vehicleId String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
   @@id([userId, vehicleId])
 }
 
 model Inquiry {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
-  phone     String?
-  message   String
+  id           String        @id @default(cuid())
+  name         String
+  email        String
+  phone        String?
+  message      String
+  status       InquiryStatus @default(NEW)
+  adminNote    String?
+  nextFollowUp DateTime?
+  userId       String?
+  vehicleId    String
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status])
+  @@index([nextFollowUp])
+}
+
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  type      AnalyticsEventType
+  vehicleId String?
   userId    String?
-  vehicleId String
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  visitorId String?
+  vehicle   Vehicle?           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user      User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime           @default(now())
+
+  @@index([type, createdAt])
+  @@index([vehicleId, createdAt])
+  @@index([visitorId, createdAt])
 }
