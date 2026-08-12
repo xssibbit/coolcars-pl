@@ -1,11 +1,13 @@
 import Link from "next/link";
 
+const ORIGINAL_LOGO = "https://coolcars.pl/cdn/shop/files/cool-cars-logo.png?v=1751463577&width=380";
+
 export function Footer(){
   return <footer id="kontakt" className="footer">
     <div className="container">
       <div className="footer-brand-row">
         <div>
-          <div className="brand brand-logo footer-logo"><img src="/cool-cars-logo.svg" alt="COOL CARS" /></div>
+          <div className="brand brand-logo footer-logo"><img src={ORIGINAL_LOGO} alt="COOL CARS" /></div>
           <p>CoolCars specjalizuje się w sprzedaży pojazdów i rozwiązań chłodniczych dla firm oraz klientów indywidualnych.</p>
         </div>
         <div className="footer-catalog">
