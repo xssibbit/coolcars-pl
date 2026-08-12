@@ -24,6 +24,8 @@ export type AnalyticsAttribution = {
   landingPath?: string;
 };
 
+export type TrackableVehicleEvent = "VIEW" | "CALL" | "FAVORITE" | "COMPARE" | "QUICK_VIEW" | "WHATSAPP" | "CALLBACK" | "SHARE";
+
 function makeVisitorId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `cc-${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -68,9 +70,7 @@ function detectTouch(): { touch: Touch; explicit: boolean } | undefined {
   const utmMedium = clean(params.get("utm_medium"));
   const utmCampaign = clean(params.get("utm_campaign"));
 
-  if (utmSource) {
-    return { touch: { source: utmSource.toLowerCase(), medium: utmMedium?.toLowerCase() || "campaign", campaign: utmCampaign, landingPath }, explicit: true };
-  }
+  if (utmSource) return { touch: { source: utmSource.toLowerCase(), medium: utmMedium?.toLowerCase() || "campaign", campaign: utmCampaign, landingPath }, explicit: true };
   if (params.get("gclid")) return { touch: { source: "google", medium: "cpc", campaign: utmCampaign, landingPath }, explicit: true };
   if (params.get("fbclid")) return { touch: { source: "facebook", medium: "paid_social", campaign: utmCampaign, landingPath }, explicit: true };
   if (params.get("ttclid")) return { touch: { source: "tiktok", medium: "paid_social", campaign: utmCampaign, landingPath }, explicit: true };
@@ -108,12 +108,10 @@ export function initializeAttribution() {
   if (typeof window === "undefined") return;
   const detected = detectTouch();
   let session = readJson<Touch>(sessionStorage, SESSION_TOUCH_KEY);
-
   if (!session || detected?.explicit) {
     session = detected?.touch || { source: "direct", medium: "none", landingPath: window.location.pathname };
     writeJson(sessionStorage, SESSION_TOUCH_KEY, session);
   }
-
   const first = readJson<Touch>(localStorage, FIRST_TOUCH_KEY);
   if (!first && session) writeJson(localStorage, FIRST_TOUCH_KEY, session);
 }
@@ -136,7 +134,7 @@ export function getAttribution(): AnalyticsAttribution {
   };
 }
 
-export function trackVehicleEvent(type: "VIEW" | "CALL" | "FAVORITE" | "COMPARE" | "QUICK_VIEW", vehicleId: string) {
+export function trackVehicleEvent(type: TrackableVehicleEvent, vehicleId: string) {
   if (typeof window === "undefined") return;
   const payload = JSON.stringify({ type, vehicleId, ...getAttribution() });
   try {
