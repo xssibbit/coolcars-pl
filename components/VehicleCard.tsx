@@ -2,16 +2,27 @@ import Link from "next/link";
 import type { Vehicle } from "@prisma/client";
 import { formatKm, formatPln, grossFromNet } from "@/lib/format";
 import { Icon } from "@/components/Icons";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { CompareButton } from "@/components/CompareButton";
 import type { Locale } from "@/lib/i18n";
 
-export function VehicleCard({ vehicle, locale = "pl" }: { vehicle: Vehicle; locale?: Locale }) {
+const isRealImage=(url:string)=>!!url && !url.startsWith('/vehicles/');
+
+export function VehicleCard({ vehicle, locale = "pl", loggedIn=false, initialFavorite=false }: { vehicle: Vehicle; locale?: Locale; loggedIn?:boolean; initialFavorite?:boolean }) {
   const en = locale === "en";
   const label = vehicle.status === "AVAILABLE" ? (en ? "Available" : "Dostępny") : vehicle.status === "RESERVED" ? (en ? "Reserved" : "Rezerwacja") : vehicle.status === "SOLD" ? (en ? "Sold" : "Sprzedany") : (en ? "Preparing" : "W przygotowaniu");
+  const hasPhoto=isRealImage(vehicle.image);
   return <article className="vehicle-card">
-    <Link href={`/samochody/${vehicle.slug}`} className="vehicle-image-wrap">
-      <img className="vehicle-image" src={vehicle.image} alt={vehicle.title}/>
-      <span className="badge">{label}</span>
-    </Link>
+    <div className="vehicle-media-shell">
+      <Link href={`/samochody/${vehicle.slug}`} className="vehicle-image-wrap">
+        {hasPhoto?<img className="vehicle-image" src={vehicle.image} alt={vehicle.title}/>:<div className="vehicle-image-placeholder"><strong>COOL CARS</strong><span>{en?'Photos coming soon':'Zdjęcia wkrótce'}</span></div>}
+        <span className="badge">{label}</span>
+      </Link>
+      <div className="vehicle-card-actions">
+        <FavoriteButton vehicleId={vehicle.id} initial={initialFavorite} loggedIn={loggedIn} locale={locale} compact/>
+        <CompareButton vehicleId={vehicle.id} locale={locale} compact/>
+      </div>
+    </div>
     <div className="card-body">
       <div className="card-kicker">{vehicle.brand} · {vehicle.stockNumber}</div>
       <Link href={`/samochody/${vehicle.slug}`}><div className="card-title">{vehicle.title}</div></Link>
