@@ -2,7 +2,6 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 
 type VehicleImage = { id: string; url: string; sortOrder?: number };
 type V = {
@@ -75,9 +74,14 @@ async function prepareImage(file: File) {
       canvas.toBlob((value) => (value ? resolve(value) : reject(new Error("compression"))), "image/jpeg", 0.82),
     );
     const base = file.name.replace(/\.[^.]+$/, "") || "photo";
-    return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
-  } catch {
-    if (supported && file.size <= 8 * 1024 * 1024) return file;
+    const prepared = new File([blob], `${base}.jpg`, { type: "image/jpeg" });
+    if (prepared.size > 4 * 1024 * 1024) {
+      throw new Error(`Plik ${file.name} jest nadal zbyt duży po optymalizacji.`);
+    }
+    return prepared;
+  } catch (error) {
+    if (supported && file.size <= 4 * 1024 * 1024) return file;
+    if (error instanceof Error && error.message.includes("zbyt duży")) throw error;
     throw new Error(`Nie można przetworzyć pliku ${file.name}. Użyj JPG, PNG lub WEBP.`);
   }
 }
@@ -108,16 +112,20 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
 
     const uploadOne = async (file: File, index: number) => {
       const prepared = await prepareImage(file);
-      const safeName = prepared.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
-      await upload(`vehicles/${vehicleId}/${Date.now()}-${index}-${safeName}`, prepared, {
-        access: "public",
-        handleUploadUrl: "/api/admin/uploads",
-        clientPayload: JSON.stringify({
-          vehicleId,
-          sortOrder: baseOrder + index,
-          makePrimary: baseOrder === 0 && index === 0,
-        }),
+      const formData = new FormData();
+      formData.append("file", prepared);
+      formData.append("vehicleId", vehicleId);
+      formData.append("sortOrder", String(baseOrder + index));
+      formData.append("makePrimary", String(baseOrder === 0 && index === 0));
+
+      const response = await fetch("/api/admin/uploads", {
+        method: "POST",
+        body: formData,
       });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(json.error || `Nie udało się wysłać ${prepared.name}`);
+      }
       setUploadDone((current) => current + 1);
     };
 
