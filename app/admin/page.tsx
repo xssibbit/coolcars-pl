@@ -27,7 +27,7 @@ export default async function AdminPage({searchParams}:{searchParams:Search}){
   ]);
 
   const count=(type:string)=>events.filter(e=>e.type===type).length;
-  const views=count('VIEW'),calls=count('CALL'),inquiries=count('INQUIRY'),favorites=count('FAVORITE'),compares=count('COMPARE'),quickViews=count('QUICK_VIEW');
+  const views=count('VIEW'),calls=count('CALL'),inquiries=count('INQUIRY'),wins=count('WON'),favorites=count('FAVORITE'),compares=count('COMPARE'),quickViews=count('QUICK_VIEW');
   const uniqueVisitors=new Set(events.filter(e=>e.type==='VIEW'&&e.visitorId).map(e=>e.visitorId)).size;
   const conversion=views?((inquiries/views)*100):0;
 
@@ -42,28 +42,28 @@ export default async function AdminPage({searchParams}:{searchParams:Search}){
   const favMap=new Map(favoriteGroups.map(x=>[x.vehicleId,x._count._all]));
   const performance=vehicles.map(v=>{
     const ev=events.filter(e=>e.vehicleId===v.id);
-    const m={views:ev.filter(e=>e.type==='VIEW').length,calls:ev.filter(e=>e.type==='CALL').length,inquiries:ev.filter(e=>e.type==='INQUIRY').length,favorites:ev.filter(e=>e.type==='FAVORITE').length,compares:ev.filter(e=>e.type==='COMPARE').length,quick:ev.filter(e=>e.type==='QUICK_VIEW').length};
-    const score=m.views+m.quick*2+m.compares*3+m.favorites*4+m.calls*6+m.inquiries*10;
-    return {...v,...m,currentFavorites:favMap.get(v.id)||0,score};
+    const m={views:ev.filter(e=>e.type==='VIEW').length,calls:ev.filter(e=>e.type==='CALL').length,inquiries:ev.filter(e=>e.type==='INQUIRY').length,wins:ev.filter(e=>e.type==='WON').length,favorites:ev.filter(e=>e.type==='FAVORITE').length,compares:ev.filter(e=>e.type==='COMPARE').length,quick:ev.filter(e=>e.type==='QUICK_VIEW').length};
+    const score=m.views+m.quick*2+m.compares*3+m.favorites*4+m.calls*6+m.inquiries*10+m.wins*30;
+    return {...v,...m,currentFavorites:favMap.get(v.id)||0,leadCvr:m.views?(m.inquiries/m.views)*100:0,score};
   }).filter(v=>v.score>0).sort((a,b)=>b.score-a.score).slice(0,8);
 
   return <AdminShell>
     <div className="admin-page-head analytics-head">
-      <div><span className="admin-eyebrow">Admin 2.0</span><h1>Pulpit sprzedaży</h1><p className="dashboard-sub">Rzeczywiste zachowanie użytkowników, leady i kondycja aktualnej oferty.</p></div>
+      <div><span className="admin-eyebrow">Admin 2.1</span><h1>Pulpit sprzedaży</h1><p className="dashboard-sub">Rzeczywiste zachowanie użytkowników, źródła ruchu, leady i kondycja aktualnej oferty.</p></div>
       <div className="range-switch"><Link className={days===7?'active':''} href="/admin?range=7">7 dni</Link><Link className={days===30?'active':''} href="/admin?range=30">30 dni</Link></div>
     </div>
 
     <div className="analytics-kpis">
       <div className="analytics-kpi primary"><span>Wyświetlenia ofert</span><strong>{views}</strong><small>{uniqueVisitors} unikalnych odwiedzających</small></div>
       <div className="analytics-kpi"><span>Zapytania</span><strong>{inquiries}</strong><small>Konwersja {conversion.toFixed(1)}%</small></div>
-      <div className="analytics-kpi"><span>Kliknięcia telefonu</span><strong>{calls}</strong><small>Intencja bezpośredniego kontaktu</small></div>
-      <div className="analytics-kpi"><span>Akcje zainteresowania</span><strong>{favorites+compares+quickViews}</strong><small>{favorites} zapisów · {compares} porównań · {quickViews} quick view</small></div>
+      <div className="analytics-kpi"><span>Wygrane</span><strong>{wins}</strong><small>Leady zakończone sprzedażą</small></div>
+      <div className="analytics-kpi"><span>Kliknięcia telefonu</span><strong>{calls}</strong><small>{favorites} zapisów · {compares} porównań · {quickViews} quick view</small></div>
     </div>
 
     <div className="admin-signal-row">
       <Link href="/admin/zapytania" className="admin-signal urgent"><span>Nowe leady</span><strong>{newLeads}</strong><small>Wymagają pierwszego kontaktu</small></Link>
       <Link href="/admin/zapytania" className="admin-signal"><span>Follow-up do dziś</span><strong>{dueFollowups}</strong><small>Zaplanowane kontakty do wykonania</small></Link>
-      <div className="admin-signal"><span>Dostępne pojazdy</span><strong>{available}</strong><small>{total} wszystkich · {sold} sprzedanych</small></div>
+      <Link href="/admin/analityka" className="admin-signal"><span>Pełna analityka</span><strong>→</strong><small>Źródła, UTM i konwersja każdej maszyny</small></Link>
     </div>
 
     <section className="panel analytics-panel" id="analytics">
@@ -81,8 +81,8 @@ export default async function AdminPage({searchParams}:{searchParams:Search}){
     </section>
 
     <section className="panel top-vehicles-panel">
-      <div className="panel-head"><div><span className="admin-eyebrow">Performance</span><h2>Najbardziej angażujące oferty</h2></div><Link href="/admin/pojazdy" className="btn btn-ghost">Zarządzaj pojazdami</Link></div>
-      {performance.length?<div className="table-wrap"><table className="performance-table"><thead><tr><th>Oferta</th><th>Wyświetlenia</th><th>Telefon</th><th>Leady</th><th>Porównania</th><th>Ulubione teraz</th><th>Cena netto</th></tr></thead><tbody>{performance.map(v=><tr key={v.id}><td><div className="table-title">{v.stockNumber} · {v.title}</div><span className="mini-status">{v.status}</span></td><td><b>{v.views}</b></td><td>{v.calls}</td><td>{v.inquiries}</td><td>{v.compares}</td><td>{v.currentFavorites}</td><td>{formatPln(v.priceNet)}</td></tr>)}</tbody></table></div>:<div className="analytics-empty">Analityka właśnie została uruchomiona. Dane o najpopularniejszych ofertach pojawią się po pierwszych wizytach użytkowników.</div>}
+      <div className="panel-head"><div><span className="admin-eyebrow">Performance</span><h2>Konwersja ofert</h2></div><Link href="/admin/analityka" className="btn btn-ghost">Pełna analityka</Link></div>
+      {performance.length?<div className="table-wrap"><table className="performance-table"><thead><tr><th>Oferta</th><th>Wyświetlenia</th><th>Telefon</th><th>Leady</th><th>Wygrane</th><th>Lead CVR</th><th>Ulubione teraz</th><th>Cena netto</th></tr></thead><tbody>{performance.map(v=><tr key={v.id}><td><div className="table-title">{v.stockNumber} · {v.title}</div><span className="mini-status">{v.status}</span></td><td><b>{v.views}</b></td><td>{v.calls}</td><td>{v.inquiries}</td><td><b className="won-number">{v.wins}</b></td><td><span className={`cvr-pill ${v.leadCvr>=5?'good':''}`}>{v.leadCvr.toFixed(1)}%</span></td><td>{v.currentFavorites}</td><td>{formatPln(v.priceNet)}</td></tr>)}</tbody></table></div>:<div className="analytics-empty">Analityka właśnie została uruchomiona. Dane o konwersji ofert pojawią się po pierwszych wizytach użytkowników.</div>}
     </section>
   </AdminShell>
 }
