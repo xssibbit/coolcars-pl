@@ -20,7 +20,7 @@ export async function POST(request:Request){
   const {vehicleId,name,email,phone,message,visitorId,source,medium,campaign,firstSource,firstMedium,firstCampaign,landingPath,referrerHost}=parsed.data;
   const inquiry=await db.$transaction(async tx=>{
     const created=await tx.inquiry.create({data:{vehicleId,name,email,phone,message,userId:user?.id,visitorId,source,medium,campaign,firstSource,firstMedium,firstCampaign,landingPath}});
-    await tx.analyticsEvent.create({data:{type:'INQUIRY',vehicleId,userId:user?.id,visitorId,source,medium,campaign,firstSource,firstMedium,firstCampaign,landingPath,referrerHost}});
+    await tx.analyticsEvent.create({data:{type:'INQUIRY',vehicleId,inquiryId:created.id,userId:user?.id,visitorId,source,medium,campaign,firstSource,firstMedium,firstCampaign,landingPath,referrerHost}});
     return created;
   });
   return NextResponse.json({ok:true,id:inquiry.id},{status:201});
