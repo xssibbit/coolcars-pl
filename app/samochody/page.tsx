@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { getLocale } from "@/lib/i18n";
 import { VehicleCard } from "@/components/VehicleCard";
-import { Icon } from "@/components/Icons";
+import { CatalogFilters } from "@/components/CatalogFilters";
+import { CatalogScrollRestorer } from "@/components/CatalogScrollRestorer";
+import { SaveSearchButton } from "@/components/SavedSearchActions";
 
 type Search = Promise<Record<string, string | string[] | undefined>>;
 const one = (v: string | string[] | undefined) => Array.isArray(v) ? v[0] : (v ?? "");
@@ -10,42 +13,51 @@ const one = (v: string | string[] | undefined) => Array.isArray(v) ? v[0] : (v ?
 export default async function VehiclesPage({ searchParams }: { searchParams: Search }) {
   const [locale,user] = await Promise.all([getLocale(),getCurrentUser()]); const en = locale === "en";
   const sp = await searchParams;
-  const q=one(sp.q).trim(), brand=one(sp.brand), model=one(sp.model), category=one(sp.category), transmission=one(sp.transmission), fuel=one(sp.fuel), location=one(sp.location), sort=one(sp.sort)||'recommended';
-  const yearFrom=Number(one(sp.yearFrom))||undefined, minPrice=Number(one(sp.minPrice))||undefined, maxPrice=Number(one(sp.maxPrice))||undefined, mileageMax=Number(one(sp.mileageMax))||undefined;
+  const current={
+    q:one(sp.q).trim(),brand:one(sp.brand),model:one(sp.model),category:one(sp.category),yearFrom:one(sp.yearFrom),mileageMax:one(sp.mileageMax),minPrice:one(sp.minPrice),maxPrice:one(sp.maxPrice),transmission:one(sp.transmission),fuel:one(sp.fuel),location:one(sp.location),sort:one(sp.sort)||"recommended",
+  };
+  const view: "grid"|"list"=one(sp.view)==="list"?"list":"grid";
   const where:any={status:{not:"DRAFT"}};
-  if(q) where.OR=[{title:{contains:q,mode:'insensitive'}},{brand:{contains:q,mode:'insensitive'}},{model:{contains:q,mode:'insensitive'}},{stockNumber:{contains:q,mode:'insensitive'}}];
-  if(brand) where.brand=brand; if(model) where.model=model; if(category) where.category=category; if(transmission) where.transmission=transmission; if(fuel) where.fuel=fuel; if(location) where.location=location;
-  if(yearFrom) where.year={gte:yearFrom}; if(mileageMax) where.mileage={lte:mileageMax};
-  if(minPrice||maxPrice) where.priceNet={...(minPrice?{gte:minPrice}:{}),...(maxPrice?{lte:maxPrice}:{})};
-  const orderBy:any = sort==='priceAsc'?[{priceNet:'asc'}]:sort==='priceDesc'?[{priceNet:'desc'}]:sort==='yearDesc'?[{year:'desc'},{createdAt:'desc'}]:sort==='mileageAsc'?[{mileage:'asc'}]:sort==='newest'?[{createdAt:'desc'}]:[{featured:'desc'},{createdAt:'desc'}];
+  if(current.q) where.OR=[{title:{contains:current.q,mode:'insensitive'}},{brand:{contains:current.q,mode:'insensitive'}},{model:{contains:current.q,mode:'insensitive'}},{stockNumber:{contains:current.q,mode:'insensitive'}}];
+  if(current.brand) where.brand=current.brand;if(current.model) where.model=current.model;if(current.category) where.category=current.category;if(current.transmission) where.transmission=current.transmission;if(current.fuel) where.fuel=current.fuel;if(current.location) where.location=current.location;
+  const yearFrom=Number(current.yearFrom)||undefined,mileageMax=Number(current.mileageMax)||undefined,minPrice=Number(current.minPrice)||undefined,maxPrice=Number(current.maxPrice)||undefined;
+  if(yearFrom)where.year={gte:yearFrom};if(mileageMax)where.mileage={lte:mileageMax};if(minPrice||maxPrice)where.priceNet={...(minPrice?{gte:minPrice}:{}),...(maxPrice?{lte:maxPrice}:{})};
+  const orderBy:any=current.sort==='priceAsc'?[{priceNet:'asc'}]:current.sort==='priceDesc'?[{priceNet:'desc'}]:current.sort==='yearDesc'?[{year:'desc'},{createdAt:'desc'}]:current.sort==='mileageAsc'?[{mileage:'asc'}]:current.sort==='newest'?[{createdAt:'desc'}]:[{featured:'desc'},{createdAt:'desc'}];
 
-  const [vehicles,brands,models,transmissions,fuels,locations]=await Promise.all([
+  const [vehicles,inventory]=await Promise.all([
     db.vehicle.findMany({where,orderBy,include:{favorites:{where:{userId:user?.id??'__guest__'}},images:{orderBy:{sortOrder:'asc'}}}}),
-    db.vehicle.findMany({select:{brand:true},distinct:['brand'],orderBy:{brand:'asc'}}),
-    db.vehicle.findMany({select:{model:true},distinct:['model'],orderBy:{model:'asc'}}),
-    db.vehicle.findMany({select:{transmission:true},distinct:['transmission'],orderBy:{transmission:'asc'}}),
-    db.vehicle.findMany({select:{fuel:true},distinct:['fuel'],orderBy:{fuel:'asc'}}),
-    db.vehicle.findMany({select:{location:true},distinct:['location'],orderBy:{location:'asc'}}),
+    db.vehicle.findMany({where:{status:{not:'DRAFT'}},select:{title:true,stockNumber:true,brand:true,model:true,category:true,year:true,mileage:true,priceNet:true,transmission:true,fuel:true,location:true}}),
   ]);
+
+  const params=new URLSearchParams();
+  Object.entries(current).forEach(([k,v])=>{if(v&&!(k==='sort'&&v==='recommended'))params.set(k,v)});if(view==='list')params.set('view','list');
+  const setHref=(key:string,value?:string)=>{const p=new URLSearchParams(params.toString());if(value)p.set(key,value);else p.delete(key);return `/samochody${p.toString()?`?${p}`:''}`};
+  const chipData=[
+    ['q',current.q,current.q?`“${current.q}”`:''],['brand',current.brand,current.brand],['model',current.model,current.model],['category',current.category,current.category],
+    ['yearFrom',current.yearFrom,current.yearFrom?(en?`from ${current.yearFrom}`:`od ${current.yearFrom}`):''],['mileageMax',current.mileageMax,current.mileageMax?(en?`mileage ≤ ${Number(current.mileageMax).toLocaleString('pl-PL')}`:`przebieg ≤ ${Number(current.mileageMax).toLocaleString('pl-PL')}`):''],
+    ['minPrice',current.minPrice,current.minPrice?(en?`from ${Number(current.minPrice).toLocaleString('pl-PL')} PLN`:`od ${Number(current.minPrice).toLocaleString('pl-PL')} zł`):''],['maxPrice',current.maxPrice,current.maxPrice?(en?`to ${Number(current.maxPrice).toLocaleString('pl-PL')} PLN`:`do ${Number(current.maxPrice).toLocaleString('pl-PL')} zł`):''],
+    ['transmission',current.transmission,current.transmission],['fuel',current.fuel,current.fuel],['location',current.location,current.location],
+  ].filter((x):x is string[]=>Boolean(x[1]));
+  const searchParamsOnly=new URLSearchParams(params.toString());searchParamsOnly.delete('view');
+  const savedName=[current.brand,current.model,current.category,current.yearFrom?(en?`from ${current.yearFrom}`:`od ${current.yearFrom}`):'',current.maxPrice?(en?`to ${Number(current.maxPrice).toLocaleString('pl-PL')} PLN`:`do ${Number(current.maxPrice).toLocaleString('pl-PL')} zł`):''].filter(Boolean).slice(0,4).join(' · ')||(en?'My vehicle search':'Moje wyszukiwanie');
   const sortLabel:{[k:string]:string}={recommended:en?'Recommended':'Polecane',newest:en?'Newest':'Najnowsze',priceAsc:en?'Price: low to high':'Cena: od najniższej',priceDesc:en?'Price: high to low':'Cena: od najwyższej',yearDesc:en?'Newest year':'Rok: najnowsze',mileageAsc:en?'Lowest mileage':'Najmniejszy przebieg'};
 
-  return <><section className="page-hero"><div className="container"><span className="eyebrow">{en?"Inventory":"Katalog"}</span><h1>{en?"Vehicles available now":"Samochody dostępne od ręki"}</h1><p>{en?"Filter the current inventory by the parameters that matter. Every listing shows net and gross price and the current vehicle status.":"Filtruj ofertę po najważniejszych parametrach. Każda karta pokazuje cenę netto i brutto oraz aktualny status pojazdu."}</p></div></section>
-  <section className="section-tight"><div className="container catalog-layout">
-    <form className="filter-panel advanced-filter-panel" action="/samochody"><div className="filter-heading"><h3>{en?"Filters":"Filtry"}</h3><a href="/samochody">{en?'Reset':'Wyczyść'}</a></div>
-      <div className="field filter-search"><label>{en?"Search":"Szukaj"}</label><input className="input" name="q" defaultValue={q} placeholder={en?"Make, model, stock number":"Marka, model, nr oferty"}/></div>
-      <div className="field"><label>{en?"Make":"Marka"}</label><select className="select" name="brand" defaultValue={brand}><option value="">{en?"All":"Wszystkie"}</option>{brands.map(x=><option key={x.brand}>{x.brand}</option>)}</select></div>
-      <div className="field"><label>{en?"Model":"Model"}</label><select className="select" name="model" defaultValue={model}><option value="">{en?"All models":"Wszystkie modele"}</option>{models.map(x=><option key={x.model}>{x.model}</option>)}</select></div>
-      <div className="field"><label>{en?"Category":"Kategoria"}</label><select className="select" name="category" defaultValue={category}><option value="">{en?"All":"Wszystkie"}</option><option value="Samochody dostawcze">{en?"Commercial vehicles":"Samochody dostawcze"}</option><option value="Ciężarówki > 3,5 t">{en?"Trucks > 3.5 t":"Ciężarówki > 3,5 t"}</option><option value="Furgony">{en?"Vans":"Furgony"}</option><option value="Samochody osobowe">{en?"Passenger cars":"Samochody osobowe"}</option></select></div>
-      <div className="field"><label>{en?"Year from":"Rok od"}</label><input className="input" type="number" name="yearFrom" defaultValue={yearFrom} placeholder="2019"/></div>
-      <div className="field"><label>{en?"Mileage up to":"Przebieg do"}</label><input className="input" type="number" name="mileageMax" defaultValue={mileageMax} placeholder="250000"/></div>
-      <div className="field"><label>{en?"Net price from":"Cena netto od"}</label><input className="input" type="number" name="minPrice" defaultValue={minPrice} placeholder="50000"/></div>
-      <div className="field"><label>{en?"Net price up to":"Cena netto do"}</label><input className="input" type="number" name="maxPrice" defaultValue={maxPrice} placeholder="150000"/></div>
-      <div className="field"><label>{en?"Transmission":"Skrzynia"}</label><select className="select" name="transmission" defaultValue={transmission}><option value="">{en?'All':'Wszystkie'}</option>{transmissions.map(x=><option key={x.transmission}>{x.transmission}</option>)}</select></div>
-      <div className="field"><label>{en?"Fuel":"Paliwo"}</label><select className="select" name="fuel" defaultValue={fuel}><option value="">{en?'All':'Wszystkie'}</option>{fuels.map(x=><option key={x.fuel}>{x.fuel}</option>)}</select></div>
-      <div className="field"><label>{en?"Location":"Lokalizacja"}</label><select className="select" name="location" defaultValue={location}><option value="">{en?'All':'Wszystkie'}</option>{locations.map(x=><option key={x.location}>{x.location}</option>)}</select></div>
-      <div className="field"><label>{en?"Sort":"Sortowanie"}</label><select className="select" name="sort" defaultValue={sort}><option value="recommended">{en?'Recommended':'Polecane'}</option><option value="newest">{en?'Newest':'Najnowsze'}</option><option value="priceAsc">{en?'Price: low to high':'Cena: od najniższej'}</option><option value="priceDesc">{en?'Price: high to low':'Cena: od najwyższej'}</option><option value="yearDesc">{en?'Newest year':'Rok: najnowsze'}</option><option value="mileageAsc">{en?'Lowest mileage':'Najmniejszy przebieg'}</option></select></div>
-      <button className="btn btn-primary filter-submit" type="submit"><Icon name="search"/> {en?"Show results":"Pokaż wyniki"}</button>
-    </form>
-    <div><div className="result-bar"><span><b>{vehicles.length}</b> {en?"vehicles":"pojazdów"}</span><span>{en?'Sort':'Sortowanie'}: <b>{sortLabel[sort]??sortLabel.recommended}</b></span></div>{vehicles.length?<div className="card-grid catalog-card-grid">{vehicles.map(v=><VehicleCard key={v.id} vehicle={v} locale={locale} loggedIn={!!user} initialFavorite={v.favorites.length>0} imageUrls={v.images.map(i=>i.url)}/>)}</div>:<div className="empty">{en?"No vehicles match these filters. Change the criteria and try again.":"Nie znaleźliśmy pojazdów dla tych filtrów. Zmień kryteria i spróbuj ponownie."}</div>}</div>
-  </div></section></>;
+  return <>
+    <CatalogScrollRestorer/>
+    <section className="page-hero catalog-page-hero"><div className="container"><span className="eyebrow">{en?"Inventory":"Katalog"}</span><h1>{en?"Vehicles available now":"Samochody dostępne od ręki"}</h1><p>{en?"Find the right vehicle quickly. Filters, comparison and saved searches keep your place while you browse.":"Znajdź właściwy pojazd szybciej. Filtry, porównanie i zapisane wyszukiwania zachowują Twój kontekst podczas przeglądania."}</p></div></section>
+    <section className="section-tight"><div className="container catalog-layout ux-catalog-layout">
+      <CatalogFilters inventory={inventory} current={current} locale={locale} view={view}/>
+      <div className="catalog-results">
+        <div className="catalog-results-top">
+          <div className="result-bar"><span><b>{vehicles.length}</b> {en?"vehicles":"pojazdów"}</span><span>{en?'Sort':'Sortowanie'}: <b>{sortLabel[current.sort]??sortLabel.recommended}</b></span></div>
+          <div className="desktop-catalog-actions">
+            {chipData.length>0&&<SaveSearchButton query={searchParamsOnly.toString()} name={savedName} loggedIn={!!user} locale={locale}/>}            
+            <div className="catalog-view-switch desktop" role="group" aria-label={en?'View':'Widok'}><Link className={view==='grid'?'active':''} href={setHref('view','grid')}>▦ {en?'Cards':'Karty'}</Link><Link className={view==='list'?'active':''} href={setHref('view','list')}>☰ {en?'List':'Lista'}</Link></div>
+          </div>
+        </div>
+        {chipData.length>0&&<div className="active-filter-chips">{chipData.map(([key,,label])=><Link href={setHref(key)} key={key}>{label}<span>×</span></Link>)}<Link className="clear-all-chip" href="/samochody">{en?'Clear all':'Wyczyść wszystko'}</Link></div>}
+        {vehicles.length?<div className={`card-grid catalog-card-grid ${view==='list'?'catalog-list-view':''}`}>{vehicles.map(v=><VehicleCard key={v.id} vehicle={v} locale={locale} loggedIn={!!user} initialFavorite={v.favorites.length>0} imageUrls={v.images.map(i=>i.url)}/>)}</div>:<div className="empty catalog-empty"><strong>{en?"No exact matches":"Brak dokładnych wyników"}</strong><span>{en?"Remove one of the filters or reset the search to see the full inventory.":"Usuń jeden z filtrów albo wyczyść wyszukiwanie, aby zobaczyć pełną ofertę."}</span><Link className="btn btn-primary" href="/samochody">{en?'Show all vehicles':'Pokaż wszystkie pojazdy'}</Link></div>}
+      </div>
+    </div></section>
+  </>;
 }
