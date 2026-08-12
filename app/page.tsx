@@ -16,13 +16,13 @@ export default async function Home() {
       <div className="container">
         <div className="hero-panel">
           <div className="hero-copy">
-            <span className="eyebrow" style={{color:'#f8fafc'}}>Sprawdzone pojazdy z Polski i UE</span>
-            <h1>Pojazd do pracy. Bez zgadywania.</h1>
-            <p>Samochody osobowe, dostawcze i ciężarowe z jasną historią, czytelną ceną netto/brutto i wsparciem przy finansowaniu.</p>
-            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}><Link href="/samochody" className="btn btn-accent">Zobacz ofertę <Icon name="arrow"/></Link><a href="#kontakt" className="btn btn-ghost">Porozmawiaj z doradcą</a></div>
+            <span className="eyebrow">COOL CARS · Selected vehicles</span>
+            <h1>Pojazdy bez kompromisów.</h1>
+            <p>Wyselekcjonowane samochody osobowe, dostawcze i ciężarowe. Sprawdzona oferta, przejrzyste ceny netto i brutto oraz finansowanie dopasowane do Twoich potrzeb.</p>
+            <div style={{display:'flex',gap:10,flexWrap:'wrap'}}><Link href="/samochody" className="btn btn-accent">Zobacz ofertę <Icon name="arrow"/></Link><a href="#kontakt" className="btn btn-ghost">Skontaktuj się</a></div>
           </div>
           <img className="hero-truck" src="/vehicles/truck-3.svg" alt="Samochód ciężarowy w ofercie CoolCars"/>
-          <div className="hero-stats"><div className="hero-stat"><strong>Weryfikacja przed sprzedażą</strong><span>Stan techniczny i dokumentacja pojazdu</span></div><div className="hero-stat"><strong>Netto + brutto</strong><span>Bez ukrywania realnej ceny zakupu</span></div><div className="hero-stat"><strong>Finansowanie</strong><span>Leasing i kredyt dopasowany do firmy</span></div></div>
+          <div className="hero-stats"><div className="hero-stat"><strong>Sprawdzony wybór</strong><span>Stan techniczny i dokumentacja pojazdu</span></div><div className="hero-stat"><strong>Jasna cena</strong><span>Netto i brutto bez ukrytych kosztów</span></div><div className="hero-stat"><strong>Finansowanie</strong><span>Leasing i kredyt dopasowany do firmy</span></div></div>
         </div>
         <SearchForm brands={brands}/>
       </div>
