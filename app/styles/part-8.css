@@ -1,0 +1,76 @@
+/* Vehicle catalog cards: keep media compact so key offer data is always visible. */
+.vehicle-image-wrap {
+  display:block;
+  width:100%;
+  aspect-ratio:1.58;
+}
+
+.catalog-layout .vehicle-image-wrap {
+  aspect-ratio:1.62;
+}
+
+.catalog-layout .vehicle-card {
+  display:flex;
+  flex-direction:column;
+}
+
+.catalog-layout .card-body {
+  display:block;
+  padding:18px 18px 17px;
+  background:#fff;
+}
+
+.catalog-layout .card-kicker {
+  margin-bottom:6px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.catalog-layout .card-title {
+  min-height:0;
+  margin:0 0 13px;
+  font-size:18px;
+  line-height:1.28;
+}
+
+.catalog-layout .spec-row {
+  margin-bottom:14px;
+  gap:6px;
+}
+
+.catalog-layout .spec-pill {
+  padding:6px 8px;
+}
+
+.catalog-layout .price-row {
+  align-items:center;
+  padding-top:14px;
+}
+
+.catalog-layout .price strong {
+  font-size:23px;
+}
+
+@media (max-width:700px) {
+  .catalog-layout .vehicle-image-wrap {
+    aspect-ratio:1.5;
+  }
+
+  .catalog-layout .card-body {
+    padding:14px 14px 15px;
+  }
+
+  .catalog-layout .card-title {
+    font-size:17px;
+    margin-bottom:10px;
+  }
+
+  .catalog-layout .spec-row {
+    margin-bottom:12px;
+  }
+
+  .catalog-layout .price strong {
+    font-size:21px;
+  }
+}
