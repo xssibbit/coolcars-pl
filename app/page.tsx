@@ -86,7 +86,7 @@ export default async function Home() {
     <section className="section">
       <div className="container">
         <div className="section-head"><div><span className="eyebrow">{en ? "Selected" : "Polecane"}</span><h2>{en ? "Vehicles worth a closer look" : "Samochody warte uwagi"}</h2></div><Link className="btn btn-ghost" href="/samochody">{en ? "View all" : "Pełna oferta"} <Icon name="arrow"/></Link></div>
-        <div className="card-grid">{featured.slice(0,6).map(v => <VehicleCard key={v.id} vehicle={v} locale={locale} loggedIn={!!user} initialFavorite={v.favorites.length>0}/>)}</div>
+        <div className="card-grid">{featured.slice(0,6).map(v => <VehicleCard key={v.id} vehicle={v} locale={locale} loggedIn={!!user} initialFavorite={v.favorites.length>0} imageUrl={v.images.find(i=>isRealImage(i.url))?.url}/>)}</div>
       </div>
     </section>
 
