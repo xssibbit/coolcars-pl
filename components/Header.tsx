@@ -7,7 +7,7 @@ export async function Header() {
   return <header className="site-header">
     <div className="container header-inner">
       <Link className="brand brand-logo" href="/" aria-label="Cool Cars">
-        <img src="/cool-cars-logo.jpg" alt="COOL CARS" />
+        <img src="/cool-cars-logo.svg" alt="COOL CARS" />
       </Link>
       <nav className="nav" aria-label="Główna nawigacja">
         <Link href="/samochody">Samochody</Link>
