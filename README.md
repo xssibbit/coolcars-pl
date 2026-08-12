@@ -95,3 +95,4 @@ After deployment, open `/rejestracja` and register using exactly the e-mail conf
 > Do not use the demo passwords from `prisma/seed.ts` in production. The seed file is intended only for local/demo environments and is not run by the production build.
 
 GitHub integration is connected to Vercel; commits to `main` trigger production deployments automatically.
+Vercel framework preset: Next.js.
