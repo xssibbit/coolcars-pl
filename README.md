@@ -75,7 +75,6 @@ Also add before launch:
 
 See `DESIGN_SYSTEM.md`. The interface follows the automotive direction from `nextlevelbuilder/ui-ux-pro-max-skill`: hero-centric presentation, strong imagery, motion used sparingly, comparison-ready structured data, financing cues and a sales-oriented dashboard.
 
-
 ## Deploy on Vercel (recommended)
 
 This repository is prepared for PostgreSQL hosting (Neon, Supabase, or another managed PostgreSQL provider) and Vercel.
@@ -94,3 +93,5 @@ The build command runs `prisma generate` and `prisma db push` before `next build
 After deployment, open `/rejestracja` and register using exactly the e-mail configured in `ADMIN_EMAIL`. That account will receive the `ADMIN` role and will be redirected to `/admin` after the next login. All other registered accounts receive the `USER` role.
 
 > Do not use the demo passwords from `prisma/seed.ts` in production. The seed file is intended only for local/demo environments and is not run by the production build.
+
+GitHub integration is connected to Vercel; commits to `main` trigger production deployments automatically.
