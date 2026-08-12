@@ -41,7 +41,11 @@ export async function POST(request: Request) {
         const user = await getCurrentUser();
         if (!user || user.role !== "ADMIN") throw new Error("Brak uprawnień");
 
-        const payload = JSON.parse(clientPayload || "{}") as { vehicleId?: string };
+        const payload = JSON.parse(clientPayload || "{}") as {
+          vehicleId?: string;
+          sortOrder?: number;
+          makePrimary?: boolean;
+        };
         if (!payload.vehicleId) throw new Error("Brak pojazdu");
 
         const vehicle = await db.vehicle.findUnique({
@@ -54,20 +58,31 @@ export async function POST(request: Request) {
           allowedContentTypes: ["image/jpeg", "image/png", "image/webp"],
           maximumSizeInBytes: 8 * 1024 * 1024,
           addRandomSuffix: true,
-          tokenPayload: JSON.stringify({ vehicleId: payload.vehicleId }),
+          tokenPayload: JSON.stringify({
+            vehicleId: payload.vehicleId,
+            sortOrder: Number.isFinite(payload.sortOrder) ? payload.sortOrder : 0,
+            makePrimary: payload.makePrimary === true,
+          }),
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        const { vehicleId } = JSON.parse(tokenPayload || "{}") as { vehicleId?: string };
-        if (!vehicleId) return;
+        const payload = JSON.parse(tokenPayload || "{}") as {
+          vehicleId?: string;
+          sortOrder?: number;
+          makePrimary?: boolean;
+        };
+        if (!payload.vehicleId) return;
 
-        const count = await db.vehicleImage.count({ where: { vehicleId } });
+        const sortOrder = Number.isFinite(payload.sortOrder) ? Number(payload.sortOrder) : 0;
         await db.$transaction(async (tx) => {
           await tx.vehicleImage.create({
-            data: { vehicleId, url: blob.url, sortOrder: count },
+            data: { vehicleId: payload.vehicleId!, url: blob.url, sortOrder },
           });
-          if (count === 0) {
-            await tx.vehicle.update({ where: { id: vehicleId }, data: { image: blob.url } });
+          if (payload.makePrimary) {
+            await tx.vehicle.update({
+              where: { id: payload.vehicleId! },
+              data: { image: blob.url },
+            });
           }
         });
       },
