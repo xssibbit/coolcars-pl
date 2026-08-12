@@ -1,4 +1,4 @@
-export function Icon({ name, size = 18 }: { name: "search"|"user"|"heart"|"arrow"|"truck"|"shield"|"check"|"finance"|"edit"|"trash"|"logout"|"calendar"|"gauge"|"fuel"|"tag"|"compare"|"phone"|"eye"|"settings"|"pin"|"camera"; size?: number }) {
+export function Icon({ name, size = 18 }: { name: "search"|"user"|"heart"|"arrow"|"truck"|"shield"|"check"|"finance"|"edit"|"trash"|"logout"|"calendar"|"gauge"|"fuel"|"tag"|"compare"|"phone"|"eye"|"settings"|"pin"|"camera"|"filter"|"share"|"message"; size?: number }) {
   const p = { width:size, height:size, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", strokeWidth:2, strokeLinecap:"round" as const, strokeLinejoin:"round" as const, "aria-hidden":true };
   const map = {
     search:<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
@@ -21,7 +21,10 @@ export function Icon({ name, size = 18 }: { name: "search"|"user"|"heart"|"arrow
     eye:<><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></>,
     settings:<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2v-4h.09A1.7 1.7 0 0 0 3.6 8a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8 3.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2h4v.09A1.7 1.7 0 0 0 15 3.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 8c.15.37.36.7.63.98.28.28.62.48.99.6H22v4h-.09a1.7 1.7 0 0 0-1.5 1.42Z"/></>,
     pin:<><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></>,
-    camera:<><path d="M14.5 4 16 6h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1.5-2Z"/><circle cx="12" cy="12" r="3"/></>
+    camera:<><path d="M14.5 4 16 6h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1.5-2Z"/><circle cx="12" cy="12" r="3"/></>,
+    filter:<><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></>,
+    share:<><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.6 6.8-4.2M8.6 13.4l6.8 4.2"/></>,
+    message:<><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/><path d="M8 9h8M8 13h5"/></>
   };
   return <svg {...p}>{map[name]}</svg>;
 }
