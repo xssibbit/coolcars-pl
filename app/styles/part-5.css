@@ -45,12 +45,26 @@
 .quick-searches > span { font-weight:800; color:#56647a; margin-right:3px; }
 .quick-searches a { padding:7px 11px; background:#fff; border:1px solid #dce4ef; border-radius:999px; color:#40516f; font-weight:700; transition:.18s ease; }
 .quick-searches a:hover { border-color:#8ba4ec; color:#3158c9; transform:translateY(-1px); }
-.brand-strip-section { background:#fff; border-bottom:1px solid #e6ebf2; }
-.brand-strip-section .container { padding:25px 0 27px; }
-.brand-strip-label { color:#8995a6; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.12em; margin-bottom:13px; }
-.brand-strip { display:flex; gap:9px; flex-wrap:wrap; }
-.brand-strip a { border:1px solid #dfe5ee; background:#fbfcfe; border-radius:11px; padding:10px 15px; color:#25324a; font-weight:800; font-size:13px; transition:.18s ease; }
-.brand-strip a:hover { border-color:#94aaeb; color:#3159c9; box-shadow:0 8px 20px rgba(48,76,144,.08); }
+
+.brand-carousel-section { position:relative; overflow:hidden; padding:28px 0 34px; background:linear-gradient(180deg,#fff 0%,#fbfdff 100%); border-bottom:1px solid #e6ebf2; }
+.brand-carousel-heading { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:17px; }
+.brand-carousel-heading .eyebrow { margin:0; color:#8490a4; }
+.brand-carousel-hint { color:#9aa5b5; font-size:11px; font-weight:750; }
+.brand-marquee { position:relative; width:100%; overflow:hidden; padding:5px 0 13px; }
+.brand-marquee-track { display:flex; width:max-content; animation:brand-marquee-scroll 30s linear infinite; will-change:transform; }
+.brand-marquee:hover .brand-marquee-track { animation-play-state:paused; }
+.brand-marquee-group { display:flex; gap:16px; padding-right:16px; }
+.brand-logo-card { width:190px; min-width:190px; height:118px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:11px; padding:16px 18px; border:1px solid rgba(207,218,234,.88); border-radius:20px; background:rgba(255,255,255,.78); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:0 12px 30px rgba(39,60,105,.075),inset 0 1px 0 rgba(255,255,255,.92); color:#26334b; transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease,background .24s ease; }
+.brand-logo-card:hover { transform:translateY(-5px); border-color:#9db2ea; background:#fff; box-shadow:0 20px 42px rgba(42,67,126,.15),0 0 0 1px rgba(83,111,206,.04); }
+.brand-logo-visual { height:52px; width:100%; display:grid; place-items:center; }
+.brand-logo-visual img { display:block; width:auto; height:44px; max-width:112px; object-fit:contain; filter:saturate(.92); transition:transform .24s ease,filter .24s ease; }
+.brand-logo-card:hover .brand-logo-visual img { transform:scale(1.08); filter:saturate(1.08); }
+.brand-logo-card strong { font-size:13px; font-weight:850; letter-spacing:-.01em; text-align:center; }
+.brand-marquee-fade { position:absolute; top:0; bottom:0; width:max(54px,6vw); z-index:3; pointer-events:none; }
+.brand-marquee-fade-left { left:0; background:linear-gradient(90deg,#fff 12%,rgba(255,255,255,.9) 30%,rgba(255,255,255,0)); }
+.brand-marquee-fade-right { right:0; background:linear-gradient(270deg,#fff 12%,rgba(255,255,255,.9) 30%,rgba(255,255,255,0)); }
+@keyframes brand-marquee-scroll { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
 .category-row > div > span { display:block; margin-top:5px; color:#7c889a; }
 .vehicle-card { box-shadow:0 12px 34px rgba(25,45,87,.08); }
 .vehicle-card:hover { transform:translateY(-6px); box-shadow:0 26px 56px rgba(25,45,87,.15); }
@@ -94,6 +108,20 @@
   .marketplace-search .search-heading,.search-submit { grid-column:auto; }
   .search-heading span { display:none; }
   .quick-searches { padding-left:0; padding-right:0; }
+  .brand-carousel-section { padding:22px 0 28px; }
+  .brand-carousel-heading { padding:0 18px; margin-bottom:13px; }
+  .brand-carousel-hint { display:none; }
+  .brand-logo-card { width:154px; min-width:154px; height:98px; border-radius:17px; gap:7px; }
+  .brand-logo-visual { height:43px; }
+  .brand-logo-visual img { height:36px; max-width:92px; }
+  .brand-marquee-group { gap:11px; padding-right:11px; }
+  .brand-marquee-track { animation-duration:24s; }
+  .brand-marquee-fade { width:36px; }
   .premium-service-points > div { grid-template-columns:40px 1fr; }
   .premium-service-points p { grid-column:2; }
+}
+@media (prefers-reduced-motion:reduce){
+  .brand-marquee-track { animation:none; }
+  .brand-marquee { overflow-x:auto; scrollbar-width:none; }
+  .brand-marquee::-webkit-scrollbar { display:none; }
 }
