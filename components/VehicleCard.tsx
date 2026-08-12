@@ -8,14 +8,14 @@ import type { Locale } from "@/lib/i18n";
 
 const isRealImage=(url:string)=>!!url && !url.startsWith('/vehicles/');
 
-export function VehicleCard({ vehicle, locale = "pl", loggedIn=false, initialFavorite=false }: { vehicle: Vehicle; locale?: Locale; loggedIn?:boolean; initialFavorite?:boolean }) {
+export function VehicleCard({ vehicle, locale = "pl", loggedIn=false, initialFavorite=false, imageUrl }: { vehicle: Vehicle; locale?: Locale; loggedIn?:boolean; initialFavorite?:boolean; imageUrl?:string }) {
   const en = locale === "en";
   const label = vehicle.status === "AVAILABLE" ? (en ? "Available" : "Dostępny") : vehicle.status === "RESERVED" ? (en ? "Reserved" : "Rezerwacja") : vehicle.status === "SOLD" ? (en ? "Sold" : "Sprzedany") : (en ? "Preparing" : "W przygotowaniu");
-  const hasPhoto=isRealImage(vehicle.image);
+  const cardImage=isRealImage(imageUrl||'')?imageUrl:isRealImage(vehicle.image)?vehicle.image:undefined;
   return <article className="vehicle-card">
     <div className="vehicle-media-shell">
       <Link href={`/samochody/${vehicle.slug}`} className="vehicle-image-wrap">
-        {hasPhoto?<img className="vehicle-image" src={vehicle.image} alt={vehicle.title}/>:<div className="vehicle-image-placeholder"><strong>COOL CARS</strong><span>{en?'Photos coming soon':'Zdjęcia wkrótce'}</span></div>}
+        {cardImage?<img className="vehicle-image" src={cardImage} alt={vehicle.title}/>:<div className="vehicle-image-placeholder"><strong>COOL CARS</strong><span>{en?'Photos coming soon':'Zdjęcia wkrótce'}</span></div>}
         <span className="badge">{label}</span>
       </Link>
       <div className="vehicle-card-actions">
