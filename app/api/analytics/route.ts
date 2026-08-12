@@ -3,10 +3,19 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
+const optionalShort = z.string().trim().min(1).max(120).optional();
 const schema = z.object({
-  type: z.enum(["VIEW", "CALL", "COMPARE", "QUICK_VIEW"]),
+  type: z.enum(["VIEW", "CALL", "FAVORITE", "COMPARE", "QUICK_VIEW"]),
   vehicleId: z.string().min(1),
   visitorId: z.string().min(8).max(80).optional(),
+  source: optionalShort,
+  medium: optionalShort,
+  campaign: optionalShort,
+  firstSource: optionalShort,
+  firstMedium: optionalShort,
+  firstCampaign: optionalShort,
+  referrerHost: optionalShort,
+  landingPath: z.string().trim().min(1).max(300).optional(),
 });
 
 export async function POST(request: Request) {
@@ -17,7 +26,7 @@ export async function POST(request: Request) {
   if (!vehicle) return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
 
   const user = await getCurrentUser();
-  const { type, vehicleId, visitorId } = parsed.data;
+  const { type, vehicleId, visitorId, ...attribution } = parsed.data;
 
   if (type === "VIEW" && visitorId) {
     const recent = await db.analyticsEvent.findFirst({
@@ -33,7 +42,7 @@ export async function POST(request: Request) {
   }
 
   await db.analyticsEvent.create({
-    data: { type, vehicleId, visitorId, userId: user?.id },
+    data: { type, vehicleId, visitorId, userId: user?.id, ...attribution },
   });
   return NextResponse.json({ ok: true }, { status: 201 });
 }
