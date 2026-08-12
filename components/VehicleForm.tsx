@@ -107,6 +107,12 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
     }
   }
 
+  async function checkPhotoStorage() {
+    const response = await fetch("/api/admin/uploads", { method: "GET", cache: "no-store" });
+    const json = await response.json().catch(() => ({}));
+    return response.ok && json.blobConfigured === true;
+  }
+
   async function removeImage(imageId: string) {
     if (!vehicle?.id) return;
     setRemoving(imageId);
@@ -125,6 +131,22 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    if (files.length) {
+      try {
+        const storageReady = await checkPhotoStorage();
+        if (!storageReady) {
+          setLoading(false);
+          setError("Magazyn zdjęć Vercel Blob nie jest połączony z projektem. Połącz Blob z projektem coolcars-pl i wykonaj nowy deployment.");
+          return;
+        }
+      } catch {
+        setLoading(false);
+        setError("Nie udało się sprawdzić magazynu zdjęć. Spróbuj ponownie za chwilę.");
+        return;
+      }
+    }
+
     const fd = new FormData(e.currentTarget);
     const nullable = (key: string) => {
       const value = String(fd.get(key) || "").trim();
