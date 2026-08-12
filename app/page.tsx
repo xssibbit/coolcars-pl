@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { getLocale, localeTag } from "@/lib/i18n";
 import { SearchForm } from "@/components/SearchForm";
 import { VehicleCard } from "@/components/VehicleCard";
+import { BrandCarousel } from "@/components/BrandCarousel";
 import { Icon } from "@/components/Icons";
 
 export default async function Home() {
@@ -67,7 +68,7 @@ export default async function Home() {
       </div>
     </section>
 
-    <section className="brand-strip-section"><div className="container"><div className="brand-strip-label">{en ? "Makes currently in stock" : "Marki aktualnie w ofercie"}</div><div className="brand-strip">{brands.slice(0,10).map(brand => <Link key={brand} href={`/samochody?brand=${encodeURIComponent(brand)}`}>{brand}</Link>)}</div></div></section>
+    <BrandCarousel brands={brands} locale={locale}/>
 
     <section id="kategorie" className="section section-soft">
       <div className="container">
