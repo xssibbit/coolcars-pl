@@ -13,10 +13,11 @@ export default async function Inquiries(){
   });
   const initial=rows.map(x=>({
     id:x.id,name:x.name,email:x.email,phone:x.phone,message:x.message,status:x.status,adminNote:x.adminNote,
+    source:x.source,medium:x.medium,campaign:x.campaign,firstSource:x.firstSource,firstMedium:x.firstMedium,
     nextFollowUp:x.nextFollowUp?.toISOString()??null,createdAt:x.createdAt.toISOString(),vehicle:x.vehicle,
   }));
   return <AdminShell>
-    <div className="admin-page-head"><div><span className="admin-eyebrow">Sales CRM</span><h1>Leady i zapytania</h1><p className="dashboard-sub">Przeciągaj leady między etapami, zapisuj ustalenia i planuj następny kontakt.</p></div></div>
+    <div className="admin-page-head"><div><span className="admin-eyebrow">Sales CRM</span><h1>Leady i zapytania</h1><p className="dashboard-sub">Przeciągaj leady między etapami, zapisuj ustalenia, planuj kontakt i sprawdzaj skąd przyszedł klient.</p></div></div>
     <AdminCRMBoard initial={initial}/>
   </AdminShell>
 }
