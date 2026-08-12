@@ -1,3 +1,22 @@
-import { requireAdmin } from "@/lib/auth"; import { db } from "@/lib/db"; import { AdminShell } from "@/components/AdminShell";
-export const metadata={title:'Zapytania — Admin'};
-export default async function Inquiries(){await requireAdmin();const rows=await db.inquiry.findMany({include:{vehicle:{select:{title:true,stockNumber:true}}},orderBy:{createdAt:'desc'}});return <AdminShell><h1>Zapytania</h1><p className="dashboard-sub">Leady wysłane z kart samochodów.</p><div className="panel"><div className="table-wrap"><table><thead><tr><th>Data</th><th>Klient</th><th>Kontakt</th><th>Pojazd</th><th>Wiadomość</th></tr></thead><tbody>{rows.map(x=><tr key={x.id}><td>{new Intl.DateTimeFormat('pl-PL').format(x.createdAt)}</td><td>{x.name}</td><td>{x.email}{x.phone?` · ${x.phone}`:''}</td><td>{x.vehicle.stockNumber} · {x.vehicle.title}</td><td style={{whiteSpace:'normal',minWidth:280}}>{x.message}</td></tr>)}</tbody></table></div></div></AdminShell>}
+import { requireAdmin } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { AdminShell } from "@/components/AdminShell";
+import { AdminCRMBoard } from "@/components/AdminCRMBoard";
+
+export const metadata={title:'CRM i zapytania — Admin'};
+
+export default async function Inquiries(){
+  await requireAdmin();
+  const rows=await db.inquiry.findMany({
+    include:{vehicle:{select:{title:true,stockNumber:true}}},
+    orderBy:[{nextFollowUp:'asc'},{createdAt:'desc'}],
+  });
+  const initial=rows.map(x=>({
+    id:x.id,name:x.name,email:x.email,phone:x.phone,message:x.message,status:x.status,adminNote:x.adminNote,
+    nextFollowUp:x.nextFollowUp?.toISOString()??null,createdAt:x.createdAt.toISOString(),vehicle:x.vehicle,
+  }));
+  return <AdminShell>
+    <div className="admin-page-head"><div><span className="admin-eyebrow">Sales CRM</span><h1>Leady i zapytania</h1><p className="dashboard-sub">Przeciągaj leady między etapami, zapisuj ustalenia i planuj następny kontakt.</p></div></div>
+    <AdminCRMBoard initial={initial}/>
+  </AdminShell>
+}
