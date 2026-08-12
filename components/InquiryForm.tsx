@@ -1,10 +1,11 @@
 "use client";
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { getAttribution } from "@/lib/analytics-client";
 import type { Locale } from "@/lib/i18n";
 export function InquiryForm({ vehicleId, defaultName='', defaultEmail='', locale='pl' }: { vehicleId:string; defaultName?:string; defaultEmail?:string; locale?:Locale }) {
   const [state,setState]=useState<'idle'|'sending'|'ok'|'error'>('idle'); const en=locale==='en'; const messageRef=useRef<HTMLTextAreaElement>(null);
   useEffect(()=>{const handler=(e:Event)=>{const detail=(e as CustomEvent<string>).detail;if(messageRef.current&&detail)messageRef.current.value=detail;};window.addEventListener('coolcars:setInquiryMessage',handler);return()=>window.removeEventListener('coolcars:setInquiryMessage',handler);},[]);
-  async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setState('sending');const form=new FormData(e.currentTarget);const payload=Object.fromEntries(form.entries());const r=await fetch('/api/inquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,vehicleId})});setState(r.ok?'ok':'error'); if(r.ok)e.currentTarget.reset();}
+  async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setState('sending');const form=new FormData(e.currentTarget);const payload=Object.fromEntries(form.entries());const r=await fetch('/api/inquiries',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...payload,vehicleId,...getAttribution()})});setState(r.ok?'ok':'error'); if(r.ok)e.currentTarget.reset();}
   return <form onSubmit={submit}>
     <div className="field"><label>{en?'Full name':'Imię i nazwisko'}</label><input required className="input" name="name" defaultValue={defaultName}/></div>
     <div className="field"><label>E-mail</label><input required type="email" className="input" name="email" defaultValue={defaultEmail}/></div>
