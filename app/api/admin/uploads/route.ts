@@ -3,6 +3,10 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
+export async function GET() {
+  return NextResponse.json({ blobConfigured: Boolean(process.env.BLOB_READ_WRITE_TOKEN) });
+}
+
 export async function POST(request: Request) {
   const body = (await request.json()) as HandleUploadBody;
 
@@ -44,6 +48,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    console.error("Blob upload token error:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Nie udało się przesłać zdjęcia" },
       { status: 400 },
