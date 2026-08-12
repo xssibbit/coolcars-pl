@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 const optionalShort = z.string().trim().min(1).max(120).optional();
 const schema = z.object({
-  type: z.enum(["VIEW", "CALL", "FAVORITE", "COMPARE", "QUICK_VIEW"]),
+  type: z.enum(["VIEW", "CALL", "FAVORITE", "COMPARE", "QUICK_VIEW", "WHATSAPP", "CALLBACK", "SHARE"]),
   vehicleId: z.string().min(1),
   visitorId: z.string().min(8).max(80).optional(),
   source: optionalShort,
@@ -41,8 +41,6 @@ export async function POST(request: Request) {
     if (recent) return NextResponse.json({ ok: true, deduped: true });
   }
 
-  await db.analyticsEvent.create({
-    data: { type, vehicleId, visitorId, userId: user?.id, ...attribution },
-  });
+  await db.analyticsEvent.create({ data: { type, vehicleId, visitorId, userId: user?.id, ...attribution } });
   return NextResponse.json({ ok: true }, { status: 201 });
 }
