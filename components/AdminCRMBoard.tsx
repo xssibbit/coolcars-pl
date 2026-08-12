@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 type Status="NEW"|"CONTACTED"|"INTERESTED"|"NEGOTIATION"|"WON"|"LOST";
 type Lead={
   id:string;name:string;email:string;phone:string|null;message:string;status:Status;adminNote:string|null;nextFollowUp:string|null;createdAt:string;
+  source:string|null;medium:string|null;campaign:string|null;firstSource:string|null;firstMedium:string|null;
   vehicle:{title:string;stockNumber:string};
 };
 
@@ -18,6 +19,7 @@ const stages:{key:Status;label:string;short:string}[]=[
 ];
 
 function localInput(iso:string|null){if(!iso)return"";const d=new Date(iso);const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,16)}
+function sourceLabel(source:string|null,medium:string|null){if(!source)return"Nieznane";return `${source}${medium?` · ${medium}`:''}`}
 
 export function AdminCRMBoard({initial}:{initial:Lead[]}){
   const [rows,setRows]=useState(initial);
@@ -46,6 +48,7 @@ export function AdminCRMBoard({initial}:{initial:Lead[]}){
         <div className="crm-column-body">
           {rows.filter(r=>r.status===stage.key).map(lead=><article draggable className={`crm-card ${busy===lead.id?'saving':''}`} key={lead.id} onDragStart={()=>setDragId(lead.id)} onDragEnd={()=>setDragId(null)}>
             <div className="crm-card-top"><span>{lead.vehicle.stockNumber}</span><time>{new Intl.DateTimeFormat('pl-PL',{day:'2-digit',month:'2-digit'}).format(new Date(lead.createdAt))}</time></div>
+            <div className="crm-source-row"><span className={`crm-source source-${(lead.source||'unknown').replace(/[^a-z0-9_-]/gi,'-').toLowerCase()}`}>{sourceLabel(lead.source,lead.medium)}</span>{lead.campaign&&<span className="crm-campaign">{lead.campaign}</span>}</div>
             <strong className="crm-client">{lead.name}</strong>
             <div className="crm-vehicle">{lead.vehicle.title}</div>
             <div className="crm-contact"><a href={`mailto:${lead.email}`}>{lead.email}</a>{lead.phone&&<a href={`tel:${lead.phone.replace(/\s/g,'')}`}>{lead.phone}</a>}</div>
@@ -68,6 +71,7 @@ function LeadEditor({lead,disabled,onSave}:{lead:Lead;disabled:boolean;onSave:(n
   const [note,setNote]=useState(lead.adminNote||"");
   const [follow,setFollow]=useState(localInput(lead.nextFollowUp));
   return <div className="crm-editor">
+    <div className="crm-attribution-detail"><span>Ostatnie źródło <b>{sourceLabel(lead.source,lead.medium)}</b></span><span>Pierwszy kontakt <b>{sourceLabel(lead.firstSource,lead.firstMedium)}</b></span>{lead.campaign&&<span>Kampania <b>{lead.campaign}</b></span>}</div>
     <label>Notatka handlowa<textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Ustalenia z klientem, budżet, preferowany termin..."/></label>
     <label>Następny kontakt<input type="datetime-local" value={follow} onChange={e=>setFollow(e.target.value)}/></label>
     <button type="button" className="btn btn-primary" disabled={disabled} onClick={()=>onSave(note,follow)}>{disabled?'Zapisywanie...':'Zapisz CRM'}</button>
