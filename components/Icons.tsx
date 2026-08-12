@@ -1,4 +1,4 @@
-export function Icon({ name, size = 18 }: { name: "search"|"user"|"heart"|"arrow"|"truck"|"shield"|"check"|"finance"|"edit"|"trash"|"logout"|"calendar"|"gauge"|"fuel"|"tag"; size?: number }) {
+export function Icon({ name, size = 18 }: { name: "search"|"user"|"heart"|"arrow"|"truck"|"shield"|"check"|"finance"|"edit"|"trash"|"logout"|"calendar"|"gauge"|"fuel"|"tag"|"compare"|"phone"; size?: number }) {
   const p = { width:size, height:size, viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", strokeWidth:2, strokeLinecap:"round" as const, strokeLinejoin:"round" as const, "aria-hidden":true };
   const map = {
     search:<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
@@ -15,7 +15,9 @@ export function Icon({ name, size = 18 }: { name: "search"|"user"|"heart"|"arrow
     calendar:<><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></>,
     gauge:<><path d="M4.93 19a10 10 0 1 1 14.14 0"/><path d="M12 12l4-4"/><path d="M12 12a2 2 0 1 0 0 .01"/></>,
     fuel:<><path d="M4 22V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v18"/><path d="M3 22h12M4 9h10"/><path d="M14 6h2l3 3v8a2 2 0 0 0 4 0v-5l-3-3"/></>,
-    tag:<><path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.82 0l3.36-3.36a2 2 0 0 0 0-2.82Z"/><circle cx="7.5" cy="6.5" r="1"/></>
+    tag:<><path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.82 0l3.36-3.36a2 2 0 0 0 0-2.82Z"/><circle cx="7.5" cy="6.5" r="1"/></>,
+    compare:<><path d="M7 7h13"/><path d="m17 4 3 3-3 3"/><path d="M17 17H4"/><path d="m7 14-3 3 3 3"/></>,
+    phone:<><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 9.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z"/></>
   };
   return <svg {...p}>{map[name]}</svg>;
 }
