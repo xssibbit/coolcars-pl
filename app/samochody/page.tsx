@@ -6,7 +6,6 @@ import { Icon } from "@/components/Icons";
 
 type Search = Promise<Record<string, string | string[] | undefined>>;
 const one = (v: string | string[] | undefined) => Array.isArray(v) ? v[0] : (v ?? "");
-const isRealImage=(url:string)=>!!url&&!url.startsWith('/vehicles/');
 
 export default async function VehiclesPage({ searchParams }: { searchParams: Search }) {
   const [locale,user] = await Promise.all([getLocale(),getCurrentUser()]); const en = locale === "en";
@@ -47,6 +46,6 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Sea
       <div className="field"><label>{en?"Sort":"Sortowanie"}</label><select className="select" name="sort" defaultValue={sort}><option value="recommended">{en?'Recommended':'Polecane'}</option><option value="newest">{en?'Newest':'Najnowsze'}</option><option value="priceAsc">{en?'Price: low to high':'Cena: od najniższej'}</option><option value="priceDesc">{en?'Price: high to low':'Cena: od najwyższej'}</option><option value="yearDesc">{en?'Newest year':'Rok: najnowsze'}</option><option value="mileageAsc">{en?'Lowest mileage':'Najmniejszy przebieg'}</option></select></div>
       <button className="btn btn-primary filter-submit" type="submit"><Icon name="search"/> {en?"Show results":"Pokaż wyniki"}</button>
     </form>
-    <div><div className="result-bar"><span><b>{vehicles.length}</b> {en?"vehicles":"pojazdów"}</span><span>{en?'Sort':'Sortowanie'}: <b>{sortLabel[sort]??sortLabel.recommended}</b></span></div>{vehicles.length?<div className="card-grid catalog-card-grid">{vehicles.map(v=><VehicleCard key={v.id} vehicle={v} locale={locale} loggedIn={!!user} initialFavorite={v.favorites.length>0} imageUrl={v.images.find(i=>isRealImage(i.url))?.url}/>)}</div>:<div className="empty">{en?"No vehicles match these filters. Change the criteria and try again.":"Nie znaleźliśmy pojazdów dla tych filtrów. Zmień kryteria i spróbuj ponownie."}</div>}</div>
+    <div><div className="result-bar"><span><b>{vehicles.length}</b> {en?"vehicles":"pojazdów"}</span><span>{en?'Sort':'Sortowanie'}: <b>{sortLabel[sort]??sortLabel.recommended}</b></span></div>{vehicles.length?<div className="card-grid catalog-card-grid">{vehicles.map(v=><VehicleCard key={v.id} vehicle={v} locale={locale} loggedIn={!!user} initialFavorite={v.favorites.length>0} imageUrls={v.images.map(i=>i.url)}/>)}</div>:<div className="empty">{en?"No vehicles match these filters. Change the criteria and try again.":"Nie znaleźliśmy pojazdów dla tych filtrów. Zmień kryteria i spróbuj ponownie."}</div>}</div>
   </div></section></>;
 }
