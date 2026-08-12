@@ -3,6 +3,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CompareBar } from "@/components/CompareBar";
+import { AttributionCapture } from "@/components/AttributionCapture";
 import { getLocale } from "@/lib/i18n";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,5 +19,5 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
-  return <html lang={locale}><body><Header/><main>{children}</main><CompareBar locale={locale}/><Footer/></body></html>;
+  return <html lang={locale}><body><AttributionCapture/><Header/><main>{children}</main><CompareBar locale={locale}/><Footer/></body></html>;
 }
