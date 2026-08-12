@@ -19,3 +19,7 @@ Admin reporting:
 - `/admin` — sales overview
 - `/admin/analityka` — per-vehicle conversion, sources and UTM campaigns
 - `/admin/zapytania` — CRM with lead source badges and won-deal tracking
+
+Conversion definitions:
+- Lead CVR = enquiries / vehicle views in the selected period
+- Sale CVR = won CRM deals / vehicle views in the selected period
