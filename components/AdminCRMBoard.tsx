@@ -1,0 +1,75 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+type Status="NEW"|"CONTACTED"|"INTERESTED"|"NEGOTIATION"|"WON"|"LOST";
+type Lead={
+  id:string;name:string;email:string;phone:string|null;message:string;status:Status;adminNote:string|null;nextFollowUp:string|null;createdAt:string;
+  vehicle:{title:string;stockNumber:string};
+};
+
+const stages:{key:Status;label:string;short:string}[]=[
+  {key:"NEW",label:"Nowe",short:"Nowe"},
+  {key:"CONTACTED",label:"Kontakt wykonany",short:"Kontakt"},
+  {key:"INTERESTED",label:"Zainteresowany",short:"Zainteres."},
+  {key:"NEGOTIATION",label:"Negocjacje",short:"Negocjacje"},
+  {key:"WON",label:"Wygrane",short:"Wygrane"},
+  {key:"LOST",label:"Utracone",short:"Utracone"},
+];
+
+function localInput(iso:string|null){if(!iso)return"";const d=new Date(iso);const z=new Date(d.getTime()-d.getTimezoneOffset()*60000);return z.toISOString().slice(0,16)}
+
+export function AdminCRMBoard({initial}:{initial:Lead[]}){
+  const [rows,setRows]=useState(initial);
+  const [busy,setBusy]=useState<string|null>(null);
+  const [open,setOpen]=useState<string|null>(null);
+  const [dragId,setDragId]=useState<string|null>(null);
+  const counts=useMemo(()=>Object.fromEntries(stages.map(s=>[s.key,rows.filter(r=>r.status===s.key).length])),[rows]);
+
+  async function patch(id:string,data:Partial<{status:Status;adminNote:string|null;nextFollowUp:string|null}>){
+    const before=rows;
+    setRows(r=>r.map(x=>x.id===id?{...x,...data}:x));
+    setBusy(id);
+    const res=await fetch(`/api/admin/inquiries/${id}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}).catch(()=>null);
+    setBusy(null);
+    if(!res?.ok){setRows(before);alert("Nie udało się zapisać zmian.");return false}
+    return true;
+  }
+
+  return <div className="crm-wrap">
+    <div className="crm-summary">
+      {stages.map(s=><div key={s.key}><span>{s.label}</span><strong>{counts[s.key]||0}</strong></div>)}
+    </div>
+    <div className="crm-board">
+      {stages.map(stage=><section className={`crm-column crm-${stage.key.toLowerCase()}`} key={stage.key} onDragOver={e=>e.preventDefault()} onDrop={()=>{if(dragId){const lead=rows.find(x=>x.id===dragId);if(lead&&lead.status!==stage.key)patch(dragId,{status:stage.key});setDragId(null)}}}>
+        <header><span>{stage.label}</span><b>{counts[stage.key]||0}</b></header>
+        <div className="crm-column-body">
+          {rows.filter(r=>r.status===stage.key).map(lead=><article draggable className={`crm-card ${busy===lead.id?'saving':''}`} key={lead.id} onDragStart={()=>setDragId(lead.id)} onDragEnd={()=>setDragId(null)}>
+            <div className="crm-card-top"><span>{lead.vehicle.stockNumber}</span><time>{new Intl.DateTimeFormat('pl-PL',{day:'2-digit',month:'2-digit'}).format(new Date(lead.createdAt))}</time></div>
+            <strong className="crm-client">{lead.name}</strong>
+            <div className="crm-vehicle">{lead.vehicle.title}</div>
+            <div className="crm-contact"><a href={`mailto:${lead.email}`}>{lead.email}</a>{lead.phone&&<a href={`tel:${lead.phone.replace(/\s/g,'')}`}>{lead.phone}</a>}</div>
+            <p>{lead.message}</p>
+            {lead.nextFollowUp&&<div className="crm-followup">Następny kontakt: <b>{new Intl.DateTimeFormat('pl-PL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(lead.nextFollowUp))}</b></div>}
+            <div className="crm-card-actions">
+              <select value={lead.status} onChange={e=>patch(lead.id,{status:e.target.value as Status})} aria-label="Status leada">{stages.map(s=><option key={s.key} value={s.key}>{s.label}</option>)}</select>
+              <button type="button" onClick={()=>setOpen(open===lead.id?null:lead.id)}>{open===lead.id?'Zamknij':'Szczegóły'}</button>
+            </div>
+            {open===lead.id&&<LeadEditor lead={lead} disabled={busy===lead.id} onSave={async(note,follow)=>{await patch(lead.id,{adminNote:note||null,nextFollowUp:follow?new Date(follow).toISOString():null})}}/>}
+          </article>)}
+          {!rows.some(r=>r.status===stage.key)&&<div className="crm-empty">Brak leadów</div>}
+        </div>
+      </section>)}
+    </div>
+  </div>
+}
+
+function LeadEditor({lead,disabled,onSave}:{lead:Lead;disabled:boolean;onSave:(note:string,follow:string)=>Promise<void>}){
+  const [note,setNote]=useState(lead.adminNote||"");
+  const [follow,setFollow]=useState(localInput(lead.nextFollowUp));
+  return <div className="crm-editor">
+    <label>Notatka handlowa<textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Ustalenia z klientem, budżet, preferowany termin..."/></label>
+    <label>Następny kontakt<input type="datetime-local" value={follow} onChange={e=>setFollow(e.target.value)}/></label>
+    <button type="button" className="btn btn-primary" disabled={disabled} onClick={()=>onSave(note,follow)}>{disabled?'Zapisywanie...':'Zapisz CRM'}</button>
+  </div>
+}
