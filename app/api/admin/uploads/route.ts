@@ -3,11 +3,26 @@ import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 
+async function isAdmin() {
+  const user = await getCurrentUser();
+  return Boolean(user && user.role === "ADMIN");
+}
+
 export async function GET() {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
+  }
   return NextResponse.json({ blobConfigured: Boolean(process.env.BLOB_READ_WRITE_TOKEN) });
 }
 
 export async function POST(request: Request) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return NextResponse.json(
+      { error: "Vercel Blob nie jest połączony z projektem. Brakuje BLOB_READ_WRITE_TOKEN." },
+      { status: 503 },
+    );
+  }
+
   const body = (await request.json()) as HandleUploadBody;
 
   try {
