@@ -1,0 +1,121 @@
+import Link from "next/link";
+import { requireAdmin } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { AdminShell } from "@/components/AdminShell";
+import { formatPln } from "@/lib/format";
+
+export const metadata={title:"Analityka sprzedaży — CoolCars Admin"};
+type Search=Promise<Record<string,string|string[]|undefined>>;
+const one=(v:string|string[]|undefined)=>Array.isArray(v)?v[0]:v;
+const pct=(n:number,d:number)=>d?`${((n/d)*100).toFixed(1)}%`:"0.0%";
+const sourceName=(source:string|null|undefined)=>source||"unknown";
+
+export default async function AnalyticsPage({searchParams}:{searchParams:Search}){
+  await requireAdmin();
+  const sp=await searchParams;
+  const raw=Number(one(sp.range));
+  const days=raw===7||raw===90?raw:30;
+  const from=new Date(Date.now()-(days-1)*86400000);from.setHours(0,0,0,0);
+
+  const [events,vehicles,favoriteGroups]=await Promise.all([
+    db.analyticsEvent.findMany({
+      where:{createdAt:{gte:from}},
+      select:{id:true,type:true,vehicleId:true,inquiryId:true,visitorId:true,source:true,medium:true,campaign:true,firstSource:true,firstMedium:true,createdAt:true},
+      orderBy:{createdAt:"desc"},
+    }),
+    db.vehicle.findMany({select:{id:true,title:true,stockNumber:true,status:true,priceNet:true},orderBy:{updatedAt:"desc"}}),
+    db.favorite.groupBy({by:["vehicleId"],_count:{_all:true}}),
+  ]);
+
+  const views=events.filter(e=>e.type==="VIEW");
+  const leads=events.filter(e=>e.type==="INQUIRY");
+  const wins=events.filter(e=>e.type==="WON");
+  const calls=events.filter(e=>e.type==="CALL");
+  const uniqueVisitors=new Set(views.map(e=>e.visitorId).filter(Boolean)).size;
+  const favMap=new Map(favoriteGroups.map(x=>[x.vehicleId,x._count._all]));
+
+  const vehicleRows=vehicles.map(vehicle=>{
+    const rows=events.filter(e=>e.vehicleId===vehicle.id);
+    const metric=(type:string)=>rows.filter(e=>e.type===type).length;
+    const viewRows=rows.filter(e=>e.type==="VIEW");
+    const sourceCounts=new Map<string,number>();
+    viewRows.forEach(e=>{const key=sourceName(e.source);sourceCounts.set(key,(sourceCounts.get(key)||0)+1)});
+    const topSource=[...sourceCounts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
+    const campaignCounts=new Map<string,number>();
+    rows.filter(e=>e.campaign).forEach(e=>{const key=e.campaign!;campaignCounts.set(key,(campaignCounts.get(key)||0)+1)});
+    const topCampaign=[...campaignCounts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||"—";
+    const vViews=metric("VIEW"),vLeads=metric("INQUIRY"),vWins=metric("WON"),vCalls=metric("CALL");
+    return {
+      ...vehicle,
+      views:vViews,
+      unique:new Set(viewRows.map(e=>e.visitorId).filter(Boolean)).size,
+      quick:metric("QUICK_VIEW"),favorites:metric("FAVORITE"),compares:metric("COMPARE"),calls:vCalls,leads:vLeads,wins:vWins,
+      currentFavorites:favMap.get(vehicle.id)||0,topSource,topCampaign,
+      leadCvr:vViews?(vLeads/vViews)*100:0,saleCvr:vViews?(vWins/vViews)*100:0,callCvr:vViews?(vCalls/vViews)*100:0,
+    };
+  }).sort((a,b)=>(b.wins-a.wins)||(b.leads-a.leads)||(b.views-a.views));
+
+  type SourceRow={source:string;medium:string;views:number;calls:number;leads:number;wins:number;firstTouches:number};
+  const sourceMap=new Map<string,SourceRow>();
+  for(const event of events){
+    const source=sourceName(event.source),medium=event.medium||"—",key=`${source}|${medium}`;
+    const row=sourceMap.get(key)||{source,medium,views:0,calls:0,leads:0,wins:0,firstTouches:0};
+    if(event.type==="VIEW")row.views++;
+    if(event.type==="CALL")row.calls++;
+    if(event.type==="INQUIRY")row.leads++;
+    if(event.type==="WON")row.wins++;
+    sourceMap.set(key,row);
+  }
+  const firstVisitor=new Map<string,string>();
+  for(const event of [...events].reverse()){
+    if(event.visitorId&&!firstVisitor.has(event.visitorId))firstVisitor.set(event.visitorId,sourceName(event.firstSource||event.source));
+  }
+  for(const source of firstVisitor.values()){
+    const match=[...sourceMap.values()].find(r=>r.source===source);
+    if(match)match.firstTouches++;
+    else sourceMap.set(`${source}|—`,{source,medium:"—",views:0,calls:0,leads:0,wins:0,firstTouches:1});
+  }
+  const sources=[...sourceMap.values()].sort((a,b)=>(b.leads-a.leads)||(b.views-a.views));
+
+  type CampaignRow={campaign:string;source:string;views:number;calls:number;leads:number;wins:number};
+  const campaignMap=new Map<string,CampaignRow>();
+  for(const event of events.filter(e=>e.campaign)){
+    const key=`${event.source||"unknown"}|${event.campaign}`;
+    const row=campaignMap.get(key)||{campaign:event.campaign!,source:sourceName(event.source),views:0,calls:0,leads:0,wins:0};
+    if(event.type==="VIEW")row.views++;
+    if(event.type==="CALL")row.calls++;
+    if(event.type==="INQUIRY")row.leads++;
+    if(event.type==="WON")row.wins++;
+    campaignMap.set(key,row);
+  }
+  const campaigns=[...campaignMap.values()].sort((a,b)=>(b.leads-a.leads)||(b.views-a.views)).slice(0,12);
+
+  return <AdminShell>
+    <div className="admin-page-head analytics-head">
+      <div><span className="admin-eyebrow">Attribution & Conversion</span><h1>Analityka sprzedaży</h1><p className="dashboard-sub">Źródła ruchu, kampanie i pełna konwersja każdej oferty — od wyświetlenia do wygranej sprzedaży.</p></div>
+      <div className="range-switch"><Link className={days===7?"active":""} href="/admin/analityka?range=7">7 dni</Link><Link className={days===30?"active":""} href="/admin/analityka?range=30">30 dni</Link><Link className={days===90?"active":""} href="/admin/analityka?range=90">90 dni</Link></div>
+    </div>
+
+    <div className="analytics-kpis attribution-kpis">
+      <div className="analytics-kpi primary"><span>Wyświetlenia ofert</span><strong>{views.length}</strong><small>{uniqueVisitors} unikalnych odwiedzających</small></div>
+      <div className="analytics-kpi"><span>Leady</span><strong>{leads.length}</strong><small>Konwersja leadowa {pct(leads.length,views.length)}</small></div>
+      <div className="analytics-kpi"><span>Wygrane</span><strong>{wins.length}</strong><small>Konwersja sprzedażowa {pct(wins.length,views.length)}</small></div>
+      <div className="analytics-kpi"><span>Kliknięcia telefonu</span><strong>{calls.length}</strong><small>Call rate {pct(calls.length,views.length)}</small></div>
+    </div>
+
+    <section className="panel attribution-panel">
+      <div className="panel-head"><div><span className="admin-eyebrow">Last-touch attribution</span><h2>Źródła ruchu i konwersja</h2></div><small className="panel-note">UTM + Google/Facebook/TikTok click IDs + referrer</small></div>
+      {sources.length?<div className="table-wrap"><table className="attribution-table"><thead><tr><th>Źródło</th><th>Medium</th><th>Pierwszy kontakt</th><th>Wyświetlenia</th><th>Telefon</th><th>Leady</th><th>Wygrane</th><th>Lead CVR</th><th>Sale CVR</th></tr></thead><tbody>{sources.map(row=><tr key={`${row.source}-${row.medium}`}><td><span className={`source-badge source-${row.source.replace(/[^a-z0-9_-]/gi,"-").toLowerCase()}`}>{row.source}</span></td><td>{row.medium}</td><td>{row.firstTouches}</td><td><b>{row.views}</b></td><td>{row.calls}</td><td>{row.leads}</td><td><b className="won-number">{row.wins}</b></td><td>{pct(row.leads,row.views)}</td><td>{pct(row.wins,row.views)}</td></tr>)}</tbody></table></div>:<div className="analytics-empty">Dane o źródłach pojawią się po nowych wizytach użytkowników.</div>}
+    </section>
+
+    <section className="panel vehicle-conversion-panel">
+      <div className="panel-head"><div><span className="admin-eyebrow">Per vehicle</span><h2>Konwersja każdej oferty</h2></div><small className="panel-note">Leady / wyświetlenia oraz wygrane / wyświetlenia</small></div>
+      <div className="table-wrap"><table className="vehicle-conversion-table"><thead><tr><th>Oferta</th><th>Wyśw.</th><th>Unikalni</th><th>Quick</th><th>Fav</th><th>Compare</th><th>Telefon</th><th>Leady</th><th>Wygrane</th><th>Lead CVR</th><th>Sale CVR</th><th>Top źródło</th><th>Top kampania</th><th>Cena netto</th></tr></thead><tbody>{vehicleRows.map(v=><tr key={v.id} className={v.wins>0?"has-win":""}><td><div className="table-title">{v.stockNumber} · {v.title}</div><span className="mini-status">{v.status}</span></td><td><b>{v.views}</b></td><td>{v.unique}</td><td>{v.quick}</td><td>{v.favorites}<small className="cell-sub">{v.currentFavorites} teraz</small></td><td>{v.compares}</td><td>{v.calls}<small className="cell-sub">{v.callCvr.toFixed(1)}%</small></td><td><b>{v.leads}</b></td><td><b className="won-number">{v.wins}</b></td><td><span className={`cvr-pill ${v.leadCvr>=5?"good":""}`}>{v.leadCvr.toFixed(1)}%</span></td><td><span className={`cvr-pill sale ${v.saleCvr>0?"good":""}`}>{v.saleCvr.toFixed(1)}%</span></td><td><span className="source-badge">{v.topSource}</span></td><td className="campaign-cell">{v.topCampaign}</td><td>{formatPln(v.priceNet)}</td></tr>)}</tbody></table></div>
+    </section>
+
+    <section className="panel campaign-panel">
+      <div className="panel-head"><div><span className="admin-eyebrow">UTM campaigns</span><h2>Kampanie</h2></div><small className="panel-note">utm_source · utm_medium · utm_campaign</small></div>
+      {campaigns.length?<div className="campaign-grid">{campaigns.map(c=><article key={`${c.source}-${c.campaign}`}><div><span className="source-badge">{c.source}</span><strong>{c.campaign}</strong></div><div className="campaign-metrics"><span><b>{c.views}</b><small>wyśw.</small></span><span><b>{c.calls}</b><small>tel.</small></span><span><b>{c.leads}</b><small>leady</small></span><span><b>{c.wins}</b><small>wygrane</small></span></div><footer>Lead CVR <b>{pct(c.leads,c.views)}</b> · Sale CVR <b>{pct(c.wins,c.views)}</b></footer></article>)}</div>:<div className="analytics-empty">Brak ruchu z oznaczonych kampanii UTM w wybranym okresie.</div>}
+    </section>
+  </AdminShell>;
+}
