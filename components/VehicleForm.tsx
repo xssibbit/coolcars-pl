@@ -55,9 +55,12 @@ const defaults: V = {
 };
 
 async function prepareImage(file: File) {
+  const supported = ["image/jpeg", "image/png", "image/webp"].includes(file.type);
+  if (supported && file.size <= 2 * 1024 * 1024) return file;
+
   try {
     const bitmap = await createImageBitmap(file);
-    const maxSide = 1800;
+    const maxSide = 1600;
     const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
     const width = Math.max(1, Math.round(bitmap.width * scale));
     const height = Math.max(1, Math.round(bitmap.height * scale));
@@ -69,12 +72,12 @@ async function prepareImage(file: File) {
     ctx.drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
     const blob = await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob((value) => (value ? resolve(value) : reject(new Error("compression"))), "image/jpeg", 0.86),
+      canvas.toBlob((value) => (value ? resolve(value) : reject(new Error("compression"))), "image/jpeg", 0.82),
     );
     const base = file.name.replace(/\.[^.]+$/, "") || "photo";
     return new File([blob], `${base}.jpg`, { type: "image/jpeg" });
   } catch {
-    if (["image/jpeg", "image/png", "image/webp"].includes(file.type) && file.size <= 8 * 1024 * 1024) return file;
+    if (supported && file.size <= 8 * 1024 * 1024) return file;
     throw new Error(`Nie można przetworzyć pliku ${file.name}. Użyj JPG, PNG lub WEBP.`);
   }
 }
@@ -88,6 +91,8 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
   const [previews, setPreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<VehicleImage[]>(data.images ?? []);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [uploadDone, setUploadDone] = useState(0);
+  const [uploadTotal, setUploadTotal] = useState(0);
 
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file));
@@ -96,21 +101,30 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
   }, [files]);
 
   async function uploadPhotos(vehicleId: string) {
-    for (let i = 0; i < files.length; i += 1) {
-      const prepared = await prepareImage(files[i]);
+    setUploadDone(0);
+    setUploadTotal(files.length);
+    const baseOrder = existingImages.length;
+    const batchSize = 3;
+
+    const uploadOne = async (file: File, index: number) => {
+      const prepared = await prepareImage(file);
       const safeName = prepared.name.toLowerCase().replace(/[^a-z0-9._-]+/g, "-");
-      await upload(`vehicles/${vehicleId}/${Date.now()}-${i}-${safeName}`, prepared, {
+      await upload(`vehicles/${vehicleId}/${Date.now()}-${index}-${safeName}`, prepared, {
         access: "public",
         handleUploadUrl: "/api/admin/uploads",
-        clientPayload: JSON.stringify({ vehicleId }),
+        clientPayload: JSON.stringify({
+          vehicleId,
+          sortOrder: baseOrder + index,
+          makePrimary: baseOrder === 0 && index === 0,
+        }),
       });
-    }
-  }
+      setUploadDone((current) => current + 1);
+    };
 
-  async function checkPhotoStorage() {
-    const response = await fetch("/api/admin/uploads", { method: "GET", cache: "no-store" });
-    const json = await response.json().catch(() => ({}));
-    return response.ok && json.blobConfigured === true;
+    for (let start = 0; start < files.length; start += batchSize) {
+      const batch = files.slice(start, start + batchSize);
+      await Promise.all(batch.map((file, offset) => uploadOne(file, start + offset)));
+    }
   }
 
   async function removeImage(imageId: string) {
@@ -131,21 +145,8 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
     e.preventDefault();
     setLoading(true);
     setError("");
-
-    if (files.length) {
-      try {
-        const storageReady = await checkPhotoStorage();
-        if (!storageReady) {
-          setLoading(false);
-          setError("Magazyn zdjęć Vercel Blob nie jest połączony z projektem. Połącz Blob z projektem coolcars-pl i wykonaj nowy deployment.");
-          return;
-        }
-      } catch {
-        setLoading(false);
-        setError("Nie udało się sprawdzić magazynu zdjęć. Spróbuj ponownie za chwilę.");
-        return;
-      }
-    }
+    setUploadDone(0);
+    setUploadTotal(0);
 
     const fd = new FormData(e.currentTarget);
     const nullable = (key: string) => {
@@ -193,7 +194,7 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
       if (savedId && files.length) await uploadPhotos(savedId);
     } catch (uploadError) {
       setLoading(false);
-      setError(uploadError instanceof Error ? `Pojazd zapisany, ale zdjęcie nie zostało wysłane: ${uploadError.message}` : "Pojazd zapisany, ale nie udało się wysłać zdjęć.");
+      setError(uploadError instanceof Error ? `Pojazd zapisany, ale nie udało się wysłać wszystkich zdjęć: ${uploadError.message}` : "Pojazd zapisany, ale nie udało się wysłać zdjęć.");
       return;
     }
 
@@ -205,6 +206,12 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
   const f = (label: string, name: keyof V, type = "text", extra: Record<string, unknown> = {}) => (
     <div className="field"><label>{label}</label><input className="input" name={name} type={type} defaultValue={(data[name] ?? "") as string | number} {...extra}/></div>
   );
+
+  const buttonText = !loading
+    ? "Zapisz pojazd"
+    : uploadTotal > 0
+      ? `Wysyłanie zdjęć ${uploadDone}/${uploadTotal}...`
+      : "Zapisywanie...";
 
   return <form className="admin-form" onSubmit={submit}>
     <div className="form-grid">
@@ -230,8 +237,8 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
         <label>Zdjęcia pojazdu</label>
         <label className="photo-drop">
           <strong>Dodaj zdjęcia z komputera</strong>
-          <span>Możesz wybrać kilka naraz. Zdjęcia zostaną zoptymalizowane przed wysłaniem.</span>
-          <input type="file" accept="image/*" multiple onChange={(event) => setFiles(Array.from(event.target.files ?? []))}/>
+          <span>Możesz wybrać kilka naraz. Duże zdjęcia zostaną automatycznie zmniejszone przed wysłaniem.</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={(event) => setFiles(Array.from(event.target.files ?? []))}/>
         </label>
         {!!existingImages.length && <div className="photo-grid">
           {existingImages.map((image, index) => <div className="photo-item" key={image.id}>
@@ -251,8 +258,8 @@ export function VehicleForm({ vehicle }: { vehicle?: V }) {
     </div>
     {error && <div className="form-error">{error}</div>}
     <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-      <button className="btn btn-accent" disabled={loading}>{loading ? (files.length ? "Zapisywanie i wysyłanie zdjęć..." : "Zapisywanie...") : "Zapisz pojazd"}</button>
-      <button className="btn btn-ghost" type="button" onClick={() => router.back()}>Anuluj</button>
+      <button className="btn btn-accent" disabled={loading}>{buttonText}</button>
+      <button className="btn btn-ghost" type="button" disabled={loading} onClick={() => router.back()}>Anuluj</button>
     </div>
   </form>;
 }
