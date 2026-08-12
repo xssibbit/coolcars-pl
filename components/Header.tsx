@@ -6,7 +6,9 @@ export async function Header() {
   const user = await getCurrentUser();
   return <header className="site-header">
     <div className="container header-inner">
-      <Link className="brand" href="/"><span className="brand-mark">C</span><span>CoolCars</span></Link>
+      <Link className="brand brand-logo" href="/" aria-label="Cool Cars">
+        <img src="/cool-cars-logo.jpg" alt="COOL CARS" />
+      </Link>
       <nav className="nav" aria-label="Główna nawigacja">
         <Link href="/samochody">Samochody</Link>
         <Link href="/#kategorie">Kategorie</Link>
