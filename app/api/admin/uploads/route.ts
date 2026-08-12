@@ -8,17 +8,25 @@ async function isAdmin() {
   return Boolean(user && user.role === "ADMIN");
 }
 
+function blobConfigured() {
+  return Boolean(process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN);
+}
+
 export async function GET() {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
   }
-  return NextResponse.json({ blobConfigured: Boolean(process.env.BLOB_READ_WRITE_TOKEN) });
+
+  return NextResponse.json({
+    blobConfigured: blobConfigured(),
+    authMode: process.env.BLOB_STORE_ID ? "oidc" : process.env.BLOB_READ_WRITE_TOKEN ? "token" : "none",
+  });
 }
 
 export async function POST(request: Request) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!blobConfigured()) {
     return NextResponse.json(
-      { error: "Vercel Blob nie jest połączony z projektem. Brakuje BLOB_READ_WRITE_TOKEN." },
+      { error: "Vercel Blob nie jest połączony z projektem." },
       { status: 503 },
     );
   }
@@ -35,7 +43,11 @@ export async function POST(request: Request) {
 
         const payload = JSON.parse(clientPayload || "{}") as { vehicleId?: string };
         if (!payload.vehicleId) throw new Error("Brak pojazdu");
-        const vehicle = await db.vehicle.findUnique({ where: { id: payload.vehicleId }, select: { id: true } });
+
+        const vehicle = await db.vehicle.findUnique({
+          where: { id: payload.vehicleId },
+          select: { id: true },
+        });
         if (!vehicle) throw new Error("Pojazd nie istnieje");
 
         return {
