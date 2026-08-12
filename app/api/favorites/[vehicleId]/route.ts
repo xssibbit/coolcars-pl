@@ -8,10 +8,7 @@ export async function POST(_:Request,{params}:{params:Promise<{vehicleId:string}
   const {vehicleId}=await params;
   const vehicle=await db.vehicle.findUnique({where:{id:vehicleId},select:{id:true}});
   if(!vehicle)return NextResponse.json({error:'Vehicle not found'},{status:404});
-  await db.$transaction([
-    db.favorite.upsert({where:{userId_vehicleId:{userId:user.id,vehicleId}},update:{},create:{userId:user.id,vehicleId}}),
-    db.analyticsEvent.create({data:{type:'FAVORITE',vehicleId,userId:user.id}}),
-  ]);
+  await db.favorite.upsert({where:{userId_vehicleId:{userId:user.id,vehicleId}},update:{},create:{userId:user.id,vehicleId}});
   return NextResponse.json({ok:true});
 }
 
