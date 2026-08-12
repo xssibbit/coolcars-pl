@@ -5,7 +5,7 @@ export function Footer(){
     <div className="container">
       <div className="footer-brand-row">
         <div>
-          <div className="brand brand-logo footer-logo"><img src="/cool-cars-logo.jpg" alt="COOL CARS" /></div>
+          <div className="brand brand-logo footer-logo"><img src="/cool-cars-logo.svg" alt="COOL CARS" /></div>
           <p>CoolCars specjalizuje się w sprzedaży pojazdów i rozwiązań chłodniczych dla firm oraz klientów indywidualnych.</p>
         </div>
         <div className="footer-catalog">
