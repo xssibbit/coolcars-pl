@@ -12,6 +12,7 @@ import { VehicleGallery } from "@/components/VehicleGallery";
 import { VehicleCard } from "@/components/VehicleCard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { VehicleViewTracker, TrackedCallLink } from "@/components/VehicleAnalytics";
+import { VehicleContactActions } from "@/components/VehicleContactActions";
 import { Icon } from "@/components/Icons";
 
 const isRealImage=(url:string)=>!!url&&!url.startsWith('/vehicles/');
@@ -52,6 +53,7 @@ export default async function VehicleDetail({ params }: { params: Promise<{ slug
           <div className="detail-price-gross">{formatPln(gross)} {en?"gross":"brutto"} · VAT {vehicle.vatRate}%</div>
           <div className="detail-mini-specs"><span><Icon name="calendar" size={15}/>{vehicle.year}</span><span><Icon name="gauge" size={15}/>{formatKm(vehicle.mileage)}</span><span><Icon name="pin" size={15}/>{vehicle.location}</span></div>
           <div className="detail-action-grid"><FavoriteButton vehicleId={vehicle.id} initial={isFav} loggedIn={!!user} locale={locale}/><CompareButton vehicleId={vehicle.id} locale={locale}/><a className="btn btn-primary detail-inquiry-btn" href="#zapytanie">{en?"Ask about this vehicle":"Zapytaj o ofertę"}</a><TrackedCallLink vehicleId={vehicle.id} className="btn btn-ghost detail-call-btn"><Icon name="phone" size={17}/>{en?'Call advisor':'Zadzwoń do doradcy'}</TrackedCallLink></div>
+          <VehicleContactActions vehicleId={vehicle.id} title={vehicle.title} stockNumber={vehicle.stockNumber} defaultName={user?.name} locale={locale}/>
           <div className="vehicle-trust-box"><div><Icon name="check"/><span><strong>{en?'Clear vehicle data':'Czytelne dane pojazdu'}</strong><small>{en?'Key specifications in one place':'Najważniejsze parametry w jednym miejscu'}</small></span></div><div><Icon name="tag"/><span><strong>{en?'Net and gross price':'Cena netto i brutto'}</strong><small>VAT {vehicle.vatRate}%</small></span></div><div><Icon name="finance"/><span><strong>{en?'Financing support':'Możliwość finansowania'}</strong><small>{en?'Ask for an individual simulation':'Poproś o indywidualną symulację'}</small></span></div><div><Icon name="truck"/><span><strong>{en?'Export support':'Wsparcie eksportowe'}</strong><small>{en?'Direct contact with our team':'Bezpośredni kontakt z zespołem'}</small></span></div></div>
           <div id="zapytanie" className="detail-inquiry-section"><h2>{en?"Quick contact":"Szybki kontakt"}</h2><InquiryForm vehicleId={vehicle.id} defaultName={user?.name} defaultEmail={user?.email} locale={locale}/></div>
         </aside>
@@ -62,6 +64,6 @@ export default async function VehicleDetail({ params }: { params: Promise<{ slug
 
     <RecentlyViewed vehicle={{id:vehicle.id,slug:vehicle.slug,title:vehicle.title,brand:vehicle.brand,image:mainImage,priceNet:vehicle.priceNet,year:vehicle.year,mileage:vehicle.mileage}} locale={locale}/>
 
-    <div className="mobile-vehicle-cta"><div><small>{en?'Net price':'Cena netto'}</small><strong>{formatPln(vehicle.priceNet)}</strong></div><TrackedCallLink vehicleId={vehicle.id} className="mobile-call-btn"><Icon name="phone" size={18}/><span>{en?'Call':'Zadzwoń'}</span></TrackedCallLink><a className="mobile-inquiry-btn" href="#zapytanie">{en?'Ask':'Zapytaj'}</a></div>
+    <div className="mobile-vehicle-cta"><div><small>{en?'Net price':'Cena netto'}</small><strong>{formatPln(vehicle.priceNet)}</strong></div><TrackedCallLink vehicleId={vehicle.id} className="mobile-call-btn"><Icon name="phone" size={18}/><span>{en?'Call':'Zadzwoń'}</span></TrackedCallLink><VehicleContactActions vehicleId={vehicle.id} title={vehicle.title} stockNumber={vehicle.stockNumber} defaultName={user?.name} locale={locale} compact/><a className="mobile-inquiry-btn" href="#zapytanie">{en?'Ask':'Zapytaj'}</a></div>
   </>;
 }
